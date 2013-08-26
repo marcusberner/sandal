@@ -1,0 +1,12 @@
+{
+    "name" : "sandal.js",
+    "version" : "0.0.0",
+    "main" : "sandal",
+    "author": "Marcus Berner <marcus@burner.se>",
+    "devDependencies": {
+        "nodeunit": "*"
+    },
+    "scripts": {
+        "test": "./node_modules/.bin/nodeunit test"
+    }
+}
