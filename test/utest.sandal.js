@@ -8,7 +8,41 @@ module.exports = {
         });
         var service = sandal.resolve('serviceWithoutDependencies');
 
-        test.equal(service.name, 'testService', 'Should get the registered service');
+        test.equal(service.name, 'testService', 'Should get the services service');
+        test.done();
+
+    },
+
+    registerServiceWithConstructorMethod: function(test) {
+
+        var sandal = require('../sandal.js');
+        sandal.register('serviceWithConstructor', function () {
+            this.name = 'serviceWithConstructor';
+        });
+        var service = sandal.resolve('serviceWithConstructor');
+        var service2 = sandal.resolve('serviceWithConstructor');
+
+        test.equal(service2.name, 'serviceWithConstructor', 'Should get the constructor output');
+        test.done();
+
+    },
+
+    registerServiceWithConstructorAndDependencies: function(test) {
+
+        var sandal = require('../sandal.js');
+        sandal.register('serviceWithConstructorA', function () {
+            this.name = 'serviceWithConstructorA';
+        });
+        sandal.register('serviceWithConstructorB', function () {
+            this.name = 'serviceWithConstructorB';
+        });
+        sandal.register('serviceWithConstructorC', function (serviceWithConstructorA, serviceWithConstructorB) {
+            this.name = 'serviceWithConstructorC';
+            this.innerName = serviceWithConstructorA.name + serviceWithConstructorB.name;
+        });
+        var serviceC = sandal.resolve('serviceWithConstructorC');
+
+        test.equal(serviceC.innerName, 'serviceWithConstructorAserviceWithConstructorB', 'Should resolve and inject the dependency');
         test.done();
 
     },
@@ -26,7 +60,7 @@ module.exports = {
         var service = sandal.resolve('serviceWithInitMethod');
         var service2 = sandal.resolve('serviceWithInitMethod');
 
-        test.equal(service2.name, 'testService2', 'Should get the registered service');
+        test.equal(service2.name, 'testService2', 'Should get the services service');
         test.equal(initiated, 1, 'Should call the init method on first resolve');
         test.done();
 
@@ -119,7 +153,7 @@ module.exports = {
             error = err;
         }
 
-        test.equal(error, 'There are circular dependencies in the following the resolve chain: serviceA3,serviceB3,serviceC3,serviceA3',
+        test.deepEqual(error, new Error('There are circular dependencies in the following the resolve chain: serviceA3,serviceB3,serviceC3,serviceA3'),
             'Should trow with helpful message');
         test.done();
 
@@ -171,7 +205,7 @@ module.exports = {
             error = err;
         }
 
-        test.equal(error, 'The service was already registered: myService', 'Should trow with helpful message');
+        test.deepEqual(error, new Error('The service was already services: myService'), 'Should trow with helpful message');
         test.done();
 
     }

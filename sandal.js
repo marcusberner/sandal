@@ -1,4 +1,5 @@
-var registered = {};
+var services = {};
+var injectFcnName = 'init';
 
 var getArgumentNames = function(func) {
     var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
@@ -9,42 +10,66 @@ var getArgumentNames = function(func) {
     return result;
 };
 
+var resolveDependencies = function(fcn, resolveChain) {
+    var argumentNames = getArgumentNames(fcn);
+    var arguments = [];
+    for (var i = 0; i < argumentNames.length; i++) {
+        arguments.push(resolve(argumentNames[i], resolveChain));
+    }
+    return arguments;
+};
+
+var callConstructor = function(fcn, resolveChain) {
+    var arguments = resolveDependencies(fcn, resolveChain);
+    var service = {};
+    fcn.prototype.constructor.apply(service, arguments);
+    return service;
+};
+
+var callInjectMethod = function(obj, resolveChain) {
+    var arguments = resolveDependencies(obj[injectFcnName], resolveChain);
+    obj[injectFcnName].apply(obj, arguments);
+    return obj;
+};
+
 var resolve = function(name, resolveChain) {
 
     for (var i = 0; i < resolveChain.length; i++) {
         if (resolveChain[i] === name) {
             resolveChain.push(name);
-            throw 'There are circular dependencies in the following the resolve chain: ' + resolveChain;
+            throw new Error('There are circular dependencies in the following the resolve chain: ' + resolveChain);
         }
     }
     resolveChain.push(name);
 
-    if (registered[name]) {
-        if (registered[name].initiated) {
-            return registered[name].implementation;
+    if (services[name]) {
+
+        if (services[name].initiated) {
+            return services[name].implementation;
         }
-        if (registered[name].implementation && typeof registered[name].implementation.init === 'function') {
-            var argumentNames = getArgumentNames(registered[name].implementation.init);
-            var arguments = [];
-            for (var i = 0; i < argumentNames.length; i++) {
-                arguments.push(resolve(argumentNames[i], resolveChain));
-            }
-            registered[name].implementation.init.apply(registered[name].implementation, arguments);
+
+        if (typeof services[name].implementation === 'function') {
+            services[name].implementation = callConstructor(services[name].implementation, resolveChain);
         }
-        registered[name].initiated = true;
-        return registered[name].implementation;
+
+        if (services[name].implementation && typeof services[name].implementation[injectFcnName] === 'function') {
+            services[name].implementation = callInjectMethod(services[name].implementation, resolveChain);
+        }
+
+        services[name].initiated = true;
+        return services[name].implementation;
     }
 
-    throw 'No component registered for ' + name;
+    throw new Error('No component registered for ' + name);
 
 };
 
 
 module.exports.register = function(name, implementation) {
-    if (registered[name]) {
-        throw 'The service was already registered: ' + name;
+    if (services[name]) {
+        throw new Error('The service was already registered: ' + name);
     }
-    registered[name] = { initiated: false, implementation: implementation };
+    services[name] = { initiated: false, implementation: implementation };
 };
 
 module.exports.resolve = function(name) {
