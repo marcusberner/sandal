@@ -21,7 +21,7 @@ var resolveDependencies = function(fcn, resolveChain) {
 
 var callConstructor = function(fcn, resolveChain) {
     var arguments = resolveDependencies(fcn, resolveChain);
-    var service = {};
+    var service = Object.create(fcn.prototype);
     fcn.prototype.constructor.apply(service, arguments);
     return service;
 };

@@ -27,6 +27,22 @@ module.exports = {
 
     },
 
+    registerServiceWithConstructorMethodAndPrototype: function(test) {
+
+        var sandal = require('../sandal.js');
+        var service = function () {};
+        service.prototype.someMethod = function() {
+            return 'The data';
+        };
+
+        sandal.register('serviceWithConstructorAndPrototype', service);
+        var service = sandal.resolve('serviceWithConstructorAndPrototype');
+
+        test.equal(service.someMethod(), 'The data', 'Should have the prototype methods');
+        test.done();
+
+    },
+
     registerServiceWithConstructorAndDependencies: function(test) {
 
         var sandal = require('../sandal.js');
