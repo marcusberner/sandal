@@ -34,19 +34,19 @@ var callInjectMethod = function(obj, resolveChain) {
 
 var resolve = function(name, resolveChain) {
 
-    for (var i = 0; i < resolveChain.length; i++) {
-        if (resolveChain[i] === name) {
-            resolveChain.push(name);
-            throw new Error('There are circular dependencies in the following the resolve chain: ' + resolveChain);
-        }
-    }
-    resolveChain.push(name);
-
     if (services[name]) {
 
         if (services[name].initiated) {
             return services[name].implementation;
         }
+
+        for (var i = 0; i < resolveChain.length; i++) {
+            if (resolveChain[i] === name) {
+                resolveChain.push(name);
+                throw new Error('There are circular dependencies in the following the resolve chain: ' + resolveChain);
+            }
+        }
+        resolveChain.push(name);
 
         if (typeof services[name].implementation === 'function') {
             services[name].implementation = callConstructor(services[name].implementation, resolveChain);

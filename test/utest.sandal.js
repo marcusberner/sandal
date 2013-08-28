@@ -47,6 +47,27 @@ module.exports = {
 
     },
 
+    registerServiceWithCommonDependencies: function(test) {
+
+        var sandal = require('../sandal.js');
+        sandal.register('serviceWithConstructorA3', function (commonService) {
+            this.name = 'serviceWithConstructorA';
+        });
+        sandal.register('serviceWithConstructorB3', function (commonService) {
+            this.name = 'serviceWithConstructorB';
+        });
+        sandal.register('serviceWithConstructorC3', function (serviceWithConstructorA3, serviceWithConstructorB3, commonService) {
+            this.name = 'serviceWithConstructorC';
+            this.innerName = serviceWithConstructorA3.name + serviceWithConstructorB3.name;
+        });
+        sandal.register('commonService', {});
+        var serviceC = sandal.resolve('serviceWithConstructorC3');
+
+        test.equal(serviceC.innerName, 'serviceWithConstructorAserviceWithConstructorB', 'Should resolve and inject the dependency');
+        test.done();
+
+    },
+
     registerServiceWithInjectMethod: function(test) {
 
         var sandal = require('../sandal.js');
