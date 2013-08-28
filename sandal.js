@@ -1,5 +1,5 @@
 var services = {};
-var injectFcnName = 'init';
+var injectFcnName = 'inject';
 
 var getArgumentNames = function(func) {
     var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');

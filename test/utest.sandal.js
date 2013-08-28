@@ -47,13 +47,13 @@ module.exports = {
 
     },
 
-    registerServiceWithInitMethod: function(test) {
+    registerServiceWithInjectMethod: function(test) {
 
         var sandal = require('../sandal.js');
         var initiated = 0;
         sandal.register('serviceWithInitMethod', {
             name: 'testService2',
-            init: function() {
+            inject: function() {
                 initiated++;
             }
         });
@@ -61,7 +61,7 @@ module.exports = {
         var service2 = sandal.resolve('serviceWithInitMethod');
 
         test.equal(service2.name, 'testService2', 'Should get the services service');
-        test.equal(initiated, 1, 'Should call the init method on first resolve');
+        test.equal(initiated, 1, 'Should call the inject method on first resolve');
         test.done();
 
     },
@@ -71,7 +71,7 @@ module.exports = {
         var sandal = require('../sandal.js');
         sandal.register('serviceA', {
             inner: undefined,
-            init: function(serviceB) {
+            inject: function(serviceB) {
                this.inner = serviceB;
             },
             getData: function() {
@@ -80,7 +80,7 @@ module.exports = {
         });
         sandal.register('serviceB', {
             inner: undefined,
-            init: function(serviceC) {
+            inject: function(serviceC) {
                 this.inner = serviceC;
             },
             getData: function() {
@@ -105,7 +105,7 @@ module.exports = {
         sandal.register('serviceA2', {
             innerB: undefined,
             innerC: undefined,
-            init: function(serviceB2, serviceC2) {
+            inject: function(serviceB2, serviceC2) {
                 this.innerB = serviceB2;
                 this.innerC = serviceC2;
             },
@@ -134,15 +134,15 @@ module.exports = {
 
         var sandal = require('../sandal.js');
         sandal.register('serviceA3', {
-            init: function(serviceB3) {
+            inject: function(serviceB3) {
             }
         });
         sandal.register('serviceB3', {
-            init: function(serviceC3) {
+            inject: function(serviceC3) {
             }
         });
         sandal.register('serviceC3', {
-            init: function(serviceA3) {
+            inject: function(serviceA3) {
             }
         });
         var error;
@@ -159,12 +159,12 @@ module.exports = {
 
     },
 
-    registerServiceWithComments: function(test) {
+    registerServiceWithCommentsInInjectMethod: function(test) {
 
         var sandal = require('../sandal.js');
         sandal.register('serviceWithCommentsA', {
             inner: undefined,
-            init: function(serviceWithCommentsB) {
+            inject: function(serviceWithCommentsB) {
                 this.inner = serviceWithCommentsB;
             },
             getData: function() {
@@ -173,7 +173,7 @@ module.exports = {
         });
         sandal.register('serviceWithCommentsB', {
             inner: undefined,
-            init: /**/function(/*Some random comments*/ serviceWithCommentsC /*With $pecial chars*/) // In various places
+            inject: /**/function(/*Some random comments*/ serviceWithCommentsC /*With $pecial chars*/) // In various places
             {
                 this.inner = serviceWithCommentsC;
             },
@@ -183,6 +183,34 @@ module.exports = {
         });
         sandal.register('serviceWithCommentsC', {
             getData: function() {
+                return 'Data from service C'
+            }
+        });
+        var service = sandal.resolve('serviceWithCommentsA');
+
+        test.equal(service.getData(), 'Data from service C', 'Should inject and initialize dependencies');
+        test.done();
+
+    },
+
+    registerServiceWithCommentsInConstructor: function(test) {
+
+        var sandal = require('../sandal.js');
+        sandal.register('serviceWithCommentsA2', function(serviceWithCommentsB) {
+            this.inner = serviceWithCommentsB;
+            this.getData = function() {
+                return this.inner.getData();
+            }
+        });
+        sandal.register('serviceWithCommentsB2', /**/function(/*Some random comments*/ serviceWithCommentsC /*With $pecial chars*/) // In various places
+            {
+            this.inner = serviceWithCommentsC,
+            this.getData = function() {
+                return this.inner.getData();
+            }
+        });
+        sandal.register('serviceWithCommentsC2', function () {
+            this.getData = function() {
                 return 'Data from service C'
             }
         });
