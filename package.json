@@ -1,6 +1,7 @@
 {
     "name" : "sandal",
-    "version" : "0.0.1",
+    "description": "Lightweight IOC container for node.js",
+    "version" : "0.1.0",
     "main" : "sandal",
     "author": "Marcus Berner <marcus@burner.se>",
     "devDependencies": {
@@ -8,5 +9,15 @@
     },
     "scripts": {
         "test": "./node_modules/.bin/nodeunit test"
+    },
+    "keywords": [
+        "sandal",
+        "ioc",
+        "inversion of control",
+        "dependency injection"
+    ],
+    "repository": "git://github.com/marcusberner/sandal",
+    "engines": {
+        "node": "*"
     }
 }
