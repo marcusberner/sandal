@@ -1,77 +1,95 @@
-var services = {};
-var injectFcnName = 'inject';
 
-var getArgumentNames = function(func) {
-    var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-    var result = fnStr.slice(fnStr.indexOf('(')+1, fnStr.indexOf(')')).match(/([^\s,]+)/g);
-    if(result === null) {
-        result = [];
-    }
-    return result;
-};
+(function(exports){
 
-var resolveDependencies = function(fcn, resolveChain) {
-    var argumentNames = getArgumentNames(fcn);
-    var arguments = [];
-    for (var i = 0; i < argumentNames.length; i++) {
-        arguments.push(resolve(argumentNames[i], resolveChain));
-    }
-    return arguments;
-};
+    var services = {};
 
-var callConstructor = function(fcn, resolveChain) {
-    var arguments = resolveDependencies(fcn, resolveChain);
-    var service = Object.create(fcn.prototype);
-    fcn.prototype.constructor.apply(service, arguments);
-    return service;
-};
-
-var callInjectMethod = function(obj, resolveChain) {
-    var arguments = resolveDependencies(obj[injectFcnName], resolveChain);
-    obj[injectFcnName].apply(obj, arguments);
-    return obj;
-};
-
-var resolve = function(name, resolveChain) {
-
-    if (services[name]) {
-
-        if (services[name].initiated) {
-            return services[name].implementation;
+    var getArgumentNames = function(func) {
+        var functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
+        var argumentList = functionString.slice(functionString.indexOf('(')+1, functionString.indexOf(')')).match(/([^\s,]+)/g);
+        if(argumentList === null) {
+            argumentList = [];
         }
+        return argumentList;
+    };
 
-        for (var i = 0; i < resolveChain.length; i++) {
-            if (resolveChain[i] === name) {
-                resolveChain.push(name);
-                throw new Error('There are circular dependencies in the following the resolve chain: ' + resolveChain);
+    var resolveDependencies = function(fcn, resolveChain) {
+        var dependencyNames = getArgumentNames(fcn);
+        var dependencies = [];
+        for (var i = 0; i < dependencyNames.length; i++) {
+            dependencies.push(resolve(dependencyNames[i], resolveChain.slice(0)));
+        }
+        return dependencies;
+    };
+
+    var callConstructor = function(fcn, resolveChain) {
+        var dependencies = resolveDependencies(fcn, resolveChain);
+        var service = Object.create(fcn.prototype);
+        fcn.prototype.constructor.apply(service, dependencies);
+        return service;
+    };
+
+    var resolve = function(name, resolveChain) {
+
+        if (services[name]) {
+
+            if (services[name].singleton) {
+                return services[name].singleton;
             }
+
+            for (var i = 0; i < resolveChain.length; i++) {
+                if (resolveChain[i] === name) {
+                    resolveChain.push(name);
+                    throw new Error('There are circular dependencies. Resolve chain: ' + resolveChain);
+                }
+            }
+            resolveChain.push(name);
+
+            var service = services[name].implementation;
+            if (typeof service === 'function') {
+                service = callConstructor(service, resolveChain);
+            }
+
+            if (services[name].lifecycle === 'singleton') {
+                services[name].singleton = service;
+            }
+
+            return service;
+
         }
-        resolveChain.push(name);
 
-        if (typeof services[name].implementation === 'function') {
-            services[name].implementation = callConstructor(services[name].implementation, resolveChain);
+        throw new Error('No service registered for ' + name);
+
+    };
+
+
+    exports.register = function(name, implementation, lifecycle) {
+
+        if (services[name]) {
+            throw new Error('The service was already registered: ' + name);
         }
-
-        if (services[name].implementation && typeof services[name].implementation[injectFcnName] === 'function') {
-            services[name].implementation = callInjectMethod(services[name].implementation, resolveChain);
+        if (!implementation) {
+            throw new Error('Implementation required');
         }
+        if (!lifecycle) {
+            lifecycle = 'singleton';
+        }
+        if (lifecycle !== 'singleton' && lifecycle !== 'transient') {
+            throw new Error('Invalid lifecycle');
+        }
+        services[name] = { lifecycle: lifecycle, implementation: implementation, singleton: null };
 
-        services[name].initiated = true;
-        return services[name].implementation;
-    }
+    };
 
-    throw new Error('No component registered for ' + name);
+    exports.resolve = function(name) {
+        return resolve(name, []);
+    };
 
-};
+    exports.clear = function(name) {
+        if (name) {
+            delete services[name];
+            return;
+        }
+        services = {};
+    };
 
-
-module.exports.register = function(name, implementation) {
-    if (services[name]) {
-        throw new Error('The service was already registered: ' + name);
-    }
-    services[name] = { initiated: false, implementation: implementation };
-};
-
-module.exports.resolve = function(name) {
-    return resolve(name, []);
-};
+})(typeof exports === 'undefined' ? this['sandal'] = {} : exports);

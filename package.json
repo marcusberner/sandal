@@ -5,7 +5,8 @@
     "main" : "sandal",
     "author": "Marcus Berner <marcus@burner.se>",
     "devDependencies": {
-        "nodeunit": "*"
+        "mocha": "~1.21.0",
+        "assert": "*"
     },
     "scripts": {
         "test": "./node_modules/.bin/nodeunit test"
