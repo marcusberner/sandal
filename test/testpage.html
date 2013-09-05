@@ -8,20 +8,22 @@
     <script src="../sandal.js"></script>
     <script>
 
-        sandal.register('service1', function (service2, service3) {
+        sandal.registerService('service1', function (service2, service3) {
             this.data = service2.data + service3;
         });
-        sandal.register('service2', function (service4) {
+        sandal.registerService('service2', function (service4) {
             this.data = service4.data;
         });
-        sandal.register('service3', 'any object');
-        sandal.register('service4', function () {
+        sandal.registerObject('service3', 'any object');
+        sandal.registerService('service4', function () {
             this.data = 'service4';
         });
 
-        var service = sandal.resolve('service1');
+        var service = sandal.resolve(function(service1) {
+            alert(service1.data === 'service4any object' ? 'Success' : 'Fail');
+        });
 
-        alert(service.data === 'service4any object' ? 'Success' : 'Fail');
+
 
     </script>
 

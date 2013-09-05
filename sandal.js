@@ -12,76 +12,133 @@
         return argumentList;
     };
 
-    var resolveDependencies = function(fcn, resolveChain) {
-        var dependencyNames = getArgumentNames(fcn);
-        var dependencies = [];
-        for (var i = 0; i < dependencyNames.length; i++) {
-            dependencies.push(resolve(dependencyNames[i], resolveChain.slice(0)));
-        }
-        return dependencies;
-    };
+	var resolveService = function(name, resolveChain, callback, done) {
 
-    var callConstructor = function(fcn, resolveChain) {
-        var dependencies = resolveDependencies(fcn, resolveChain);
-        var service = Object.create(fcn.prototype);
-        fcn.prototype.constructor.apply(service, dependencies);
-        return service;
-    };
+		if (!services[name]) {
+			throw new Error('No implementation registered for ' + name);
+		}
 
-    var resolve = function(name, resolveChain) {
-
-        if (services[name]) {
-
-            if (services[name].singleton) {
-                return services[name].singleton;
-            }
-
-            for (var i = 0; i < resolveChain.length; i++) {
-                if (resolveChain[i] === name) {
-                    resolveChain.push(name);
-                    throw new Error('There are circular dependencies. Resolve chain: ' + resolveChain);
-                }
-            }
-            resolveChain.push(name);
-
-            var service = services[name].implementation;
-            if (typeof service === 'function') {
-                service = callConstructor(service, resolveChain);
-            }
-
-            if (services[name].lifecycle === 'singleton') {
-                services[name].singleton = service;
-            }
-
-            return service;
-
-        }
-
-        throw new Error('No service registered for ' + name);
-
-    };
+		for (var i = 0; i < resolveChain.length; i++) {
+			if (resolveChain[i] === name) {
+				resolveChain.push(name);
+				throw new Error('There are circular dependencies in resolve chain: ' + resolveChain);
+			}
+		}
+		resolveChain.push(name);
 
 
-    exports.register = function(name, implementation, lifecycle) {
+		if (name === 'sandal') {
+			callback(exports);
+			done();
+			return;
+		}
 
-        if (services[name]) {
-            throw new Error('The service was already registered: ' + name);
-        }
-        if (!implementation) {
-            throw new Error('Implementation required');
-        }
-        if (!lifecycle) {
-            lifecycle = 'singleton';
-        }
-        if (lifecycle !== 'singleton' && lifecycle !== 'transient') {
-            throw new Error('Invalid lifecycle');
-        }
-        services[name] = { lifecycle: lifecycle, implementation: implementation, singleton: null };
+		if (services[name].obj) {
+			callback(services[name].obj);
+			done();
+			return;
+		}
 
-    };
+		if (services[name].isResolving) {
+			services[name].resolvedCallbacks.push(function() {
+				callback(services[name].obj);
+				done();
+			});
+			return;
+		}
+		services[name].isResolving = true;
 
-    exports.resolve = function(name) {
-        return resolve(name, []);
+		if (services[name].constructor) {
+
+			var argumentNames = getArgumentNames(services[name].constructor);
+			var dependencyCount = argumentNames.length;
+			var dependencies = [];
+			var hasDoneCallback = false;
+
+			var resolveCount = -1;
+			var dependencyDone = function() {
+				resolveCount++;
+				if (resolveCount === dependencyCount) {
+					var service = Object.create(services[name].constructor.prototype);
+					services[name].constructor.prototype.constructor.apply(service, dependencies);
+					services[name].obj = service;
+					for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
+						services[name].resolvedCallbacks[i]();
+					}
+					callback(service);
+					if (!hasDoneCallback) {
+						done();
+					}
+				}
+			};
+			dependencyDone();
+
+			for(var i = 0; i < dependencyCount; i++) {
+
+				var index = i;
+
+				if (argumentNames[index] === 'done') {
+					hasDoneCallback = true;
+					dependencies[index] = function() { done(); }
+					dependencyDone();
+					continue;
+				}
+
+				resolveService(argumentNames[index], resolveChain.slice(0), function(dependency) {
+					dependencies[index] = dependency;
+				}, dependencyDone);
+
+			}
+
+		}
+
+	};
+
+	exports.registerService = function(name, constructor) {
+		if (typeof constructor !== 'function') {
+			throw new Error('Service must be a function');
+		}
+		services[name] = {
+			obj: null,
+			constructor: constructor,
+			isResolving: false,
+			resolvedCallbacks: []
+		};
+		return exports;
+	};
+
+	exports.registerObject = function(name, obj) {
+		if (!obj) {
+			throw new Error('Implementation required');
+		}
+		services[name] = {
+			obj: obj
+		};
+		return exports;
+	};
+
+    exports.resolve = function(callback) {
+		if (typeof callback !== 'function') {
+			throw new Error('Callback function required');
+		}
+		var serviceNames = getArgumentNames(callback);
+
+		var serviceCount = serviceNames.length;
+		var resolvedCount = 0;
+		var resolved = [];
+		for (var i = 0; i < serviceCount; i++) {
+			var index = i;
+			resolveService(serviceNames[index], [], function(svc) {
+					resolved[index] = svc;
+				},
+				function() {
+					resolvedCount++;
+					if (resolvedCount === serviceCount) {
+						 callback.apply({}, resolved);
+					}
+				});
+		}
+		return exports;
     };
 
     exports.clear = function(name) {
@@ -90,6 +147,7 @@
             return;
         }
         services = {};
+		return exports;
     };
 
 })(typeof exports === 'undefined' ? this['sandal'] = {} : exports);

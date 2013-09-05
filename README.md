@@ -14,10 +14,12 @@ Sandal is an inversion of control container written in javascript. Sandal works 
 // For use in browsers, including sandal.js will create a global sandal object
 var sandal = require('sandal');
 
-sandal.register('service1', function (service2, service3) {}, 'transient');
-sandal.register('service2', function (service4) {}, 'singleton');
-sandal.register('service3', 'any object'); // Singleton is default
-sandal.register('service4', function () {});
-
-var service = sandal.resolve('service1');
+sandal
+    .registerService('service1', function (service2, service3) {})
+    .registerService('service2', function (service4, done) { setTimeout(function() { done(); }, 500); })
+    .registerObject('service3', 'any object')
+    .registerService('service4', function () {});
+    .resolve(function(service1) {
+        // Resolves service1 and all dependencies
+    });
 ```
