@@ -14,6 +14,12 @@
 
 	var resolveService = function(name, resolveChain, callback, done) {
 
+		if (name === 'sandal') {
+			callback(exports);
+			done();
+			return;
+		}
+
 		if (!services[name]) {
 			throw new Error('No implementation registered for ' + name);
 		}
@@ -25,13 +31,6 @@
 			}
 		}
 		resolveChain.push(name);
-
-
-		if (name === 'sandal') {
-			callback(exports);
-			done();
-			return;
-		}
 
 		if (services[name].obj) {
 			callback(services[name].obj);
