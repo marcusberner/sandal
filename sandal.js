@@ -117,11 +117,23 @@
 		return exports;
 	};
 
-    exports.resolve = function(callback) {
+    exports.resolve = function(arg1, arg2) {
+
+		var callback, serviceNames;
+		if (typeof arg1 === 'string') {
+			serviceNames = [ arg1 ];
+			callback = arg2;
+		} else {
+			callback = arg1;
+		}
+
 		if (typeof callback !== 'function') {
 			throw new Error('Callback function required');
 		}
-		var serviceNames = getArgumentNames(callback);
+
+		if (!serviceNames) {
+			serviceNames = getArgumentNames(callback);
+		}
 
 		var serviceCount = serviceNames.length;
 		var resolvedCount = 0;
