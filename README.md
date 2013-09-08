@@ -24,7 +24,7 @@ sandal
     .register('module3', 'any object')
     .registerClass('module4', function () {});
     .resolve(function(module1) {
-        // Resolves service1 and all dependencies
+        // Resolves module1 and all dependencies
     });
 ```
 
