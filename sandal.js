@@ -1,164 +1,190 @@
 
-(function(exports){
+var getArgumentNames = function(func) {
+	var functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
+	var argumentList = functionString.slice(functionString.indexOf('(')+1, functionString.indexOf(')')).match(/([^\s,]+)/g);
+	if(argumentList === null) {
+		argumentList = [];
+	}
+	return argumentList;
+};
 
-    var services = {};
+var resolveService = function(name, services, resolveChain, callback, done) {
 
-    var getArgumentNames = function(func) {
-        var functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-        var argumentList = functionString.slice(functionString.indexOf('(')+1, functionString.indexOf(')')).match(/([^\s,]+)/g);
-        if(argumentList === null) {
-            argumentList = [];
-        }
-        return argumentList;
-    };
+	if (!services[name]) {
+		throw new Error('No implementation registered for ' + name);
+	}
 
-	var resolveService = function(name, resolveChain, callback, done) {
-
-		if (name === 'sandal') {
-			callback(exports);
-			done();
-			return;
+	for (var i = 0; i < resolveChain.length; i++) {
+		if (resolveChain[i] === name) {
+			resolveChain.push(name);
+			throw new Error('There are circular dependencies in resolve chain: ' + resolveChain);
 		}
+	}
+	resolveChain.push(name);
 
-		if (!services[name]) {
-			throw new Error('No implementation registered for ' + name);
-		}
+	if (typeof services[name].obj !== 'undefined') {
+		callback(services[name].obj);
+		done();
+		return;
+	}
 
-		for (var i = 0; i < resolveChain.length; i++) {
-			if (resolveChain[i] === name) {
-				resolveChain.push(name);
-				throw new Error('There are circular dependencies in resolve chain: ' + resolveChain);
-			}
-		}
-		resolveChain.push(name);
-
-		if (services[name].obj) {
+	if (services[name].isResolving) {
+		services[name].resolvedCallbacks.push(function() {
 			callback(services[name].obj);
 			done();
-			return;
-		}
+		});
+		return;
+	}
+	services[name].isResolving = true;
 
-		if (services[name].isResolving) {
-			services[name].resolvedCallbacks.push(function() {
-				callback(services[name].obj);
-				done();
-			});
-			return;
-		}
-		services[name].isResolving = true;
+	if (services[name].constructor) {
 
-		if (services[name].constructor) {
+		var argumentNames = getArgumentNames(services[name].constructor);
+		var dependencyCount = argumentNames.length;
+		var dependencies = [];
+		var hasDoneCallback = false;
 
-			var argumentNames = getArgumentNames(services[name].constructor);
-			var dependencyCount = argumentNames.length;
-			var dependencies = [];
-			var hasDoneCallback = false;
-
-			var resolveCount = -1;
-			var dependencyDone = function() {
-				resolveCount++;
-				if (resolveCount === dependencyCount) {
-					var service = Object.create(services[name].constructor.prototype);
-					services[name].constructor.prototype.constructor.apply(service, dependencies);
-					services[name].obj = service;
-					for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
-						services[name].resolvedCallbacks[i]();
-					}
-					callback(service);
-					if (!hasDoneCallback) {
-						done();
-					}
+		var resolveCount = -1;
+		var dependencyDone = function() {
+			resolveCount++;
+			if (resolveCount === dependencyCount) {
+				var service = Object.create(services[name].constructor.prototype);
+				services[name].constructor.prototype.constructor.apply(service, dependencies);
+				services[name].obj = service;
+				for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
+					services[name].resolvedCallbacks[i]();
 				}
-			};
-			dependencyDone();
-
-			for(var i = 0; i < dependencyCount; i++) {
-
-				var index = i;
-
-				if (argumentNames[index] === 'done') {
-					hasDoneCallback = true;
-					dependencies[index] = function() { done(); }
-					dependencyDone();
-					continue;
+				callback(service);
+				if (!hasDoneCallback) {
+					done();
 				}
+				delete services[name].constructor;
+				delete services[name].resolvedCallbacks;
+				delete services[name].isResolving;
+			}
+		};
+		dependencyDone();
 
-				resolveService(argumentNames[index], resolveChain.slice(0), function(dependency) {
-					dependencies[index] = dependency;
-				}, dependencyDone);
+		for(var i = 0; i < dependencyCount; i++) {
 
+			var index = i;
+
+			if (argumentNames[index] === 'done') {
+				hasDoneCallback = true;
+				dependencies[index] = function() { done(); }
+				dependencyDone();
+				continue;
 			}
 
+			resolveService(argumentNames[index], services, resolveChain.slice(0), function(dependency) {
+				dependencies[index] = dependency;
+			}, dependencyDone);
+
 		}
 
+	}
+
+};
+
+var Sandal = function() {
+	this.clear();
+};
+
+Sandal.prototype.registerClass = function(name, constructor) {
+	if (typeof constructor !== 'function') {
+		throw new Error('Service must be a function');
+	}
+	if (name === 'done' || this.services[name]) {
+		throw new Error('There is already an implementation registered with the name ' + name);
+	}
+	this.services[name] = {
+		obj: undefined,
+		constructor: constructor,
+		isResolving: false,
+		resolvedCallbacks: []
 	};
+	return this;
+};
 
-	exports.registerService = function(name, constructor) {
-		if (typeof constructor !== 'function') {
-			throw new Error('Service must be a function');
-		}
-		services[name] = {
-			obj: null,
-			constructor: constructor,
-			isResolving: false,
-			resolvedCallbacks: []
+Sandal.prototype.register = function(name, obj) {
+	if (typeof obj === 'undefined') {
+		throw new Error('Implementation required');
+	}
+	if (name === 'done' || this.services[name]) {
+		throw new Error('There is already an implementation registered with the name ' + name);
+	}
+	this.services[name] = {
+		obj: obj
+	};
+	return this;
+};
+
+Sandal.prototype.resolve = function(arg1, arg2) {
+
+	var that = this;
+	var callback, serviceNames;
+	if (typeof arg1 === 'string') {
+		serviceNames = [ arg1 ];
+		callback = arg2;
+	} else if (typeof arg1 === 'function') {
+		callback = arg1;
+	} else {
+		serviceNames = arg1;
+		callback = arg2;
+	}
+
+	if (typeof callback !== 'function') {
+		throw new Error('Callback function required');
+	}
+
+	if (!serviceNames) {
+		serviceNames = getArgumentNames(callback);
+	}
+
+	var serviceCount = serviceNames.length;
+	var resolvedCount = 0;
+	var resolved = [];
+	for (var i = 0; i < serviceCount; i++) {
+		var index = i;
+		resolveService(serviceNames[index], that.services, [], function(svc) {
+				resolved[index] = svc;
+			},
+			function() {
+				resolvedCount++;
+				if (resolvedCount === serviceCount) {
+					callback.apply({}, resolved);
+				}
+			});
+	}
+	return this;
+};
+
+Sandal.prototype.clear = function(names) {
+
+	if (typeof names === 'undefined') {
+		this.services = {
+			sandal: {
+				obj: this
+			}
 		};
-		return exports;
-	};
+		return this;
+	}
 
-	exports.registerObject = function(name, obj) {
-		if (!obj) {
-			throw new Error('Implementation required');
+	if (typeof names === 'string') {
+		names = [ names ];
+	}
+
+	for (var i = 0; i < names.length; i++) {
+		if (names[i] === 'sandal' || names[i] === 'done') {
+			throw new Error('Clearing sandal or done is not allowed');
 		}
-		services[name] = {
-			obj: obj
-		};
-		return exports;
-	};
+		delete this.services[names[i]];
+	}
+	return this;
+};
 
-    exports.resolve = function(arg1, arg2) {
-
-		var callback, serviceNames;
-		if (typeof arg1 === 'string') {
-			serviceNames = [ arg1 ];
-			callback = arg2;
-		} else {
-			callback = arg1;
-		}
-
-		if (typeof callback !== 'function') {
-			throw new Error('Callback function required');
-		}
-
-		if (!serviceNames) {
-			serviceNames = getArgumentNames(callback);
-		}
-
-		var serviceCount = serviceNames.length;
-		var resolvedCount = 0;
-		var resolved = [];
-		for (var i = 0; i < serviceCount; i++) {
-			var index = i;
-			resolveService(serviceNames[index], [], function(svc) {
-					resolved[index] = svc;
-				},
-				function() {
-					resolvedCount++;
-					if (resolvedCount === serviceCount) {
-						 callback.apply({}, resolved);
-					}
-				});
-		}
-		return exports;
-    };
-
-    exports.clear = function(name) {
-        if (name) {
-            delete services[name];
-            return;
-        }
-        services = {};
-		return exports;
-    };
-
-})(typeof exports === 'undefined' ? this['sandal'] = {} : exports);
+if (typeof module === 'undefined' || typeof module.exports  === 'undefined') {
+	this['Sandal'] = Sandal;
+} else {
+	module.exports = Sandal;
+}
