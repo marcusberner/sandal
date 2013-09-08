@@ -1,6 +1,6 @@
 {
     "name" : "sandal",
-    "description": "Lightweight IOC container for node.js",
+    "description": "Javascript inversion of control container",
     "version" : "0.4.0",
     "main" : "sandal",
     "author": "Marcus Berner <marcus@burner.se>",

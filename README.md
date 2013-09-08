@@ -23,7 +23,7 @@ sandal
     })
     .register('module3', 'any object')
     .registerClass('module4', function () {});
-    .resolve(function(service1) {
+    .resolve(function(module1) {
         // Resolves service1 and all dependencies
     });
 ```
@@ -72,5 +72,5 @@ sandal.clear(nameArray);  // Clear the named modules
 
 ### Asynchronous constructor
 
-If a constructor has some asynchronous tasks that needs to be done before the instance can be used that can be handled by including an argument named `done`.
-This will inject a done callback to the constructor. Resolving a module with dependencies to an asynchronous constructor will wait for all dependencies to be done before calling the module constructor.
+If a constructor has some asynchronous tasks that needs to be done before the instance can be used, it should take an argument named `done`.
+That will inject a `done` callback to the constructor. Resolving a module with dependencies to an asynchronous constructor will wait for all dependencies to be done before calling the module constructor.
