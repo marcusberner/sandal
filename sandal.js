@@ -37,9 +37,9 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 	}
 	services[name].isResolving = true;
 
-	if (services[name].constructor) {
+	if (services[name].klass) {
 
-		var argumentNames = getArgumentNames(services[name].constructor);
+		var argumentNames = getArgumentNames(services[name].klass);
 		var dependencyCount = argumentNames.length;
 		var dependencies = [];
 		var hasDoneCallback = false;
@@ -48,8 +48,8 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 		var dependencyDone = function() {
 			resolveCount++;
 			if (resolveCount === dependencyCount) {
-				var service = Object.create(services[name].constructor.prototype);
-				services[name].constructor.prototype.constructor.apply(service, dependencies);
+				var service = Object.create(services[name].klass.prototype);
+				services[name].klass.prototype.constructor.apply(service, dependencies);
 				services[name].obj = service;
 				for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
 					services[name].resolvedCallbacks[i]();
@@ -58,7 +58,7 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 				if (!hasDoneCallback) {
 					done();
 				}
-				delete services[name].constructor;
+				delete services[name].klass;
 				delete services[name].resolvedCallbacks;
 				delete services[name].isResolving;
 			}
@@ -90,8 +90,8 @@ var Sandal = function() {
 	this.clear();
 };
 
-Sandal.prototype.registerClass = function(name, constructor) {
-	if (typeof constructor !== 'function') {
+Sandal.prototype.registerClass = function(name, klass) {
+	if (typeof klass !== 'function') {
 		throw new Error('Service must be a function');
 	}
 	if (name === 'done' || this.services[name]) {
@@ -99,7 +99,7 @@ Sandal.prototype.registerClass = function(name, constructor) {
 	}
 	this.services[name] = {
 		obj: undefined,
-		constructor: constructor,
+		klass: klass,
 		isResolving: false,
 		resolvedCallbacks: []
 	};
