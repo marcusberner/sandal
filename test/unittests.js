@@ -34,6 +34,23 @@ test('Register and resolve class', function (t) {
 
 });
 
+test('Register and resolve factory', function (t) {
+
+	t.plan(1);
+
+	var sandal = new Sandal();
+	sandal.registerFactory('service', function() {
+		return {
+			name: 'service name'
+		};
+	});
+
+	sandal.resolve(function(service) {
+		t.equal(service.name, 'service name');
+	});
+
+});
+
 test('Comments in constructor', function (t) {
 
 	t.plan(1);
@@ -363,7 +380,7 @@ test('Circular dependencies', function (t) {
 
 });
 
-test('Async constructor', function (t) {
+test('Async class constructor', function (t) {
 
 	t.plan(5);
 
@@ -390,6 +407,41 @@ test('Async constructor', function (t) {
 	sandal.registerClass('service1', service1);
 	sandal.registerClass('service2', service2);
 	sandal.registerClass('service3', service3);
+
+	sandal.resolve(function(service1) {
+		order++;
+		t.equal(order, 5);
+	});
+
+});
+
+test('Async factory constructor', function (t) {
+
+	t.plan(5);
+
+	var sandal = new Sandal();
+	var order = 0;
+	var service1 = function (service2, service3) {
+		order++;
+		t.equal(order, 4);
+	};
+	var service2 = function (done) {
+		order++;
+		t.equal(order, 1);
+		setTimeout(function() {
+			order++;
+			t.equal(order, 3);
+			done();
+		}, 100);
+	};
+	var service3 = function () {
+		order++;
+		t.equal(order, 2);
+	};
+
+	sandal.registerFactory('service1', service1);
+	sandal.registerFactory('service2', service2);
+	sandal.registerFactory('service3', service3);
 
 	sandal.resolve(function(service1) {
 		order++;
