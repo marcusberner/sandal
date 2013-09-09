@@ -37,9 +37,9 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 	}
 	services[name].isResolving = true;
 
-	if (services[name].factory) {
+	if (services[name].klass || services[name].factory) {
 
-		var argumentNames = getArgumentNames(services[name].factory);
+		var argumentNames = getArgumentNames(services[name].klass || services[name].factory)
 		var dependencyCount = argumentNames.length;
 		var dependencies = [];
 		var hasDoneCallback = false;
@@ -48,58 +48,17 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 		var dependencyDone = function() {
 			resolveCount++;
 			if (resolveCount === dependencyCount) {
-				var service = services[name].factory.apply(null, dependencies);
-				services[name].obj = service
+				if (services[name].klass) {
+					var obj = Object.create(services[name].klass.prototype);
+					services[name].klass.prototype.constructor.apply(obj, dependencies);
+				} else {
+					var obj = services[name].factory.apply(null, dependencies);
+				}
+				services[name].obj = obj;
 				for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
 					services[name].resolvedCallbacks[i]();
 				}
-				callback(service);
-				if (!hasDoneCallback) {
-					done();
-				}
-				delete services[name].factory;
-				delete services[name].resolvedCallbacks;
-				delete services[name].isResolving;
-			}
-		};
-		dependencyDone();
-
-		for(var i = 0; i < dependencyCount; i++) {
-
-			var index = i;
-
-			if (argumentNames[index] === 'done') {
-				hasDoneCallback = true;
-				dependencies[index] = function() { done(); }
-				dependencyDone();
-				continue;
-			}
-
-			resolveService(argumentNames[index], services, resolveChain.slice(0), function(dependency) {
-				dependencies[index] = dependency;
-			}, dependencyDone);
-
-		}
-	}
-
-	if (services[name].klass) {
-
-		var argumentNames = getArgumentNames(services[name].klass);
-		var dependencyCount = argumentNames.length;
-		var dependencies = [];
-		var hasDoneCallback = false;
-
-		var resolveCount = -1;
-		var dependencyDone = function() {
-			resolveCount++;
-			if (resolveCount === dependencyCount) {
-				var service = Object.create(services[name].klass.prototype);
-				services[name].klass.prototype.constructor.apply(service, dependencies);
-				services[name].obj = service;
-				for (var i = 0; i < services[name].resolvedCallbacks.length; i++) {
-					services[name].resolvedCallbacks[i]();
-				}
-				callback(service);
+				callback(obj);
 				if (!hasDoneCallback) {
 					done();
 				}
