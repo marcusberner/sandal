@@ -171,19 +171,17 @@ test('Register without implementation', function (t) {
 
 test('Clear all implementations', function (t) {
 
-	t.plan(2);
+	t.plan(3);
 
 	var container = new Sandal();
 	container.register('service', {});
 	container.clear();
-	try {
-		container.resolve(function(service) {});
-		t.ok(false);
-	}
-	catch (err) {
-		t.ok(true);
-	}
-	container.resolve(function(sandal) {
+
+	container.resolve(function(error, service) {
+		t.notEqual(error, undefined);
+	});
+	container.resolve(function(error, sandal) {
+		t.equal(error, undefined);
 		t.equal(sandal, container);
 	});
 
@@ -191,21 +189,18 @@ test('Clear all implementations', function (t) {
 
 test('Clear one implementations', function (t) {
 
-	t.plan(2);
+	t.plan(3);
 
 	var container = new Sandal();
 	var service = {};
 	container.register('service1', service);
 	container.register('service2', {});
 	container.clear('service2');
-	try {
-		container.resolve(function(service2) {});
-		t.ok(false);
-	}
-	catch (err) {
-		t.ok(true);
-	}
-	container.resolve(function(service1) {
+	container.resolve(function(error, service2) {
+		t.notEqual(error, undefined);
+	});
+	container.resolve(function(error, service1) {
+		t.equal(error, undefined);
 		t.equal(service, service1);
 	});
 
@@ -213,7 +208,7 @@ test('Clear one implementations', function (t) {
 
 test('Clear multiple implementations', function (t) {
 
-	t.plan(3);
+	t.plan(4);
 
 	var container = new Sandal();
 	var service = {};
@@ -221,21 +216,14 @@ test('Clear multiple implementations', function (t) {
 	container.register('service2', {});
 	container.register('service3', {});
 	container.clear([ 'service2', 'service3' ]);
-	try {
-		container.resolve(function(service2) {});
-		t.ok(false);
-	}
-	catch (err) {
-		t.ok(true);
-	}
-	try {
-		container.resolve(function(service3) {});
-		t.ok(false);
-	}
-	catch (err) {
-		t.ok(true);
-	}
-	container.resolve(function(service1) {
+	container.resolve(function(error, service2) {
+		t.notEqual(error, undefined);
+	});
+	container.resolve(function(error, service3) {
+		t.notEqual(error, undefined);
+	});
+	container.resolve(function(error, service1) {
+		t.equal(error, undefined);
 		t.equal(service, service1);
 	});
 
@@ -263,6 +251,21 @@ test('Clear done', function (t) {
 	var container = new Sandal();
 	try {
 		container.clear('done');
+		t.ok(false);
+	}
+	catch (err) {
+		t.ok(true);
+	}
+
+});
+
+test('Clear error', function (t) {
+
+	t.plan(1);
+
+	var container = new Sandal();
+	try {
+		container.clear('error');
 		t.ok(false);
 	}
 	catch (err) {
@@ -370,13 +373,9 @@ test('Circular dependencies', function (t) {
 	sandal.registerClass('service2', function (service3) {});
 	sandal.registerClass('service3', function (service1) {});
 
-	try {
-		sandal.resolve(function(service1) {});
-		t.ok(false);
-	}
-	catch (err) {
-		t.ok(true);
-	}
+	sandal.resolve(function(error, service1) {
+		t.notEqual(error, undefined);
+	});
 
 });
 
@@ -499,7 +498,7 @@ test('Resolve by name', function (t) {
 
 test('Resolve multiple', function (t) {
 
-	t.plan(2);
+	t.plan(3);
 
 	var sandal = new Sandal();
 	sandal.register('service1', {
@@ -509,7 +508,8 @@ test('Resolve multiple', function (t) {
 		name: 'service name 2'
 	});
 
-	sandal.resolve(function(service1, service2) {
+	sandal.resolve(function(service1, error, service2) {
+		t.equal(error, undefined);
 		t.equal(service1.name, 'service name 1');
 		t.equal(service2.name, 'service name 2');
 	});
@@ -518,7 +518,7 @@ test('Resolve multiple', function (t) {
 
 test('Resolve multiple by name', function (t) {
 
-	t.plan(2);
+	t.plan(3);
 
 	var sandal = new Sandal();
 	sandal.register('service1', {
@@ -528,7 +528,8 @@ test('Resolve multiple by name', function (t) {
 		name: 'service name 2'
 	});
 
-	sandal.resolve(['service1', 'service2'], function(otherName1, otherName2) {
+	sandal.resolve(['service1', 'error', 'service2'], function(otherName1, otherNameForError, otherName2) {
+		t.equal(otherNameForError, undefined);
 		t.equal(otherName1.name, 'service name 1');
 		t.equal(otherName2.name, 'service name 2');
 	});
@@ -550,6 +551,64 @@ test('Fluent', function (t) {
 		})
 		.resolve('service2', function(service) {
 			t.equal(service.name, 'service name 2');
+		});
+
+});
+
+test('Error in constructor', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerClass('service1', function(done){ done(err); })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Error in dependency constructor', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerClass('service1', function(service2){})
+		.registerClass('service2', function(done){ done(err); })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Error in factory', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerFactory('service1', function(done){ done(err); })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Error in dependency factory', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerFactory('service1', function(service2){})
+		.registerFactory('service2', function(done){ done(err); })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
 		});
 
 });

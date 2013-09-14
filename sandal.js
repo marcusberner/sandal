@@ -11,13 +11,15 @@ var getArgumentNames = function(func) {
 var resolveService = function(name, services, resolveChain, callback, done) {
 
 	if (!services[name]) {
-		throw new Error('No implementation registered for ' + name);
+		done(new Error('No implementation registered for ' + name));
+		return;
 	}
 
 	for (var i = 0; i < resolveChain.length; i++) {
 		if (resolveChain[i] === name) {
 			resolveChain.push(name);
-			throw new Error('There are circular dependencies in resolve chain: ' + resolveChain);
+			done(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
+			return;
 		}
 	}
 	resolveChain.push(name);
@@ -45,7 +47,7 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 		var hasDoneCallback = false;
 
 		var resolveCount = -1;
-		var dependencyDone = function() {
+		var dependencyDone = function(err) {
 			resolveCount++;
 			if (resolveCount === dependencyCount) {
 				if (services[name].klass) {
@@ -60,9 +62,10 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 				}
 				callback(obj);
 				if (!hasDoneCallback) {
-					done();
+					done(err);
 				}
 				delete services[name].klass;
+				delete services[name].factory;
 				delete services[name].resolvedCallbacks;
 				delete services[name].isResolving;
 			}
@@ -75,7 +78,7 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 
 			if (argumentNames[index] === 'done') {
 				hasDoneCallback = true;
-				dependencies[index] = function() { done(); }
+				dependencies[index] = function(err) { done(err); }
 				dependencyDone();
 				continue;
 			}
@@ -98,7 +101,7 @@ Sandal.prototype.registerClass = function(name, klass) {
 	if (typeof klass !== 'function') {
 		throw new Error('Service must be a function');
 	}
-	if (name === 'done' || this.services[name]) {
+	if (name === 'done' || name === 'error' || this.services[name]) {
 		throw new Error('There is already an implementation registered with the name ' + name);
 	}
 	this.services[name] = {
@@ -114,7 +117,7 @@ Sandal.prototype.registerFactory = function(name, factory) {
 	if (typeof factory !== 'function') {
 		throw new Error('Function required');
 	}
-	if (name === 'done' || this.services[name]) {
+	if (name === 'done' || name === 'error' || this.services[name]) {
 		throw new Error('There is already an implementation registered with the name ' + name);
 	}
 	this.services[name] = {
@@ -130,7 +133,7 @@ Sandal.prototype.register = function(name, obj) {
 	if (typeof obj === 'undefined') {
 		throw new Error('Implementation required');
 	}
-	if (name === 'done' || this.services[name]) {
+	if (name === 'done' || name === 'error' || this.services[name]) {
 		throw new Error('There is already an implementation registered with the name ' + name);
 	}
 	this.services[name] = {
@@ -164,12 +167,21 @@ Sandal.prototype.resolve = function(arg1, arg2) {
 	var serviceCount = serviceNames.length;
 	var resolvedCount = 0;
 	var resolved = [];
+	var errorIndex = -1;
 	for (var i = 0; i < serviceCount; i++) {
 		var index = i;
+		if (serviceNames[index] === 'error') {
+			resolvedCount++;
+			errorIndex = index;
+			continue;
+		}
 		resolveService(serviceNames[index], that.services, [], function(svc) {
 				resolved[index] = svc;
 			},
-			function() {
+			function(err) {
+				if (errorIndex !== -1) {
+					resolved[errorIndex] = err;
+				}
 				resolvedCount++;
 				if (resolvedCount === serviceCount) {
 					callback.apply({}, resolved);
@@ -195,8 +207,8 @@ Sandal.prototype.clear = function(names) {
 	}
 
 	for (var i = 0; i < names.length; i++) {
-		if (names[i] === 'sandal' || names[i] === 'done') {
-			throw new Error('Clearing sandal or done is not allowed');
+		if (names[i] === 'sandal' || names[i] === 'done' || names[i] === 'error') {
+			throw new Error('Clearing sandal, done or error is not allowed');
 		}
 		delete this.services[names[i]];
 	}

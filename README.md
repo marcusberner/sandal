@@ -26,7 +26,7 @@ sandal
     .registerFactory('module5', function(module3) {
         return 'another object';
     })
-    .resolve(function(module1) {
+    .resolve(function(error, module1) {
         // Resolves module1 and all dependencies
     });
 ```
@@ -45,11 +45,12 @@ Resolving an implementation registered with `register` will return the same inst
 Any type of object can be registered except `undefined`.
 Registering a constructor requires a `function`. When resolving the constructor will be called the first time. The resulting object will be returned and resolving multiple times will return the same instance without calling the constructor again.
 If the constructor takes arguments they will be automatically resolved based on argument name and injected before the constructor is called.
-Registring a factory requires a `function`. When resolving the factory function will be called the first time. Similar to registring classes, the factory function will only be called once and arguments automatically resolved based on argument name before the factory is called.
+Registering a factory requires a `function`. When resolving the factory function will be called the first time. Similar to registering classes, the factory function will only be called once and arguments automatically resolved based on argument name before the factory is called.
 
-There are two reserved words that can not be used as names:
-`sandal` - will inject the ioc container
-`done` - will inject a done callback
+There are three reserved words that can not be used as names:
+* `sandal` will inject the ioc container
+* `done` will inject a done callback, pa
+* `error` returns any error during resolving
 
 ### Resolve
 
@@ -78,4 +79,5 @@ sandal.clear(nameArray);  // Clear the named modules
 ### Asynchronous constructor
 
 If a constructor has some asynchronous tasks that needs to be done before the instance can be used, it should take an argument named `done`.
-That will inject a `done` callback to the constructor. Resolving a module with dependencies to an asynchronous constructor will wait for all dependencies to be done before calling the module constructor.
+That will inject a `done` callback to the constructor. Calling the done callback with an error will pass the error to the resolve callback.
+Resolving a module with dependencies to an asynchronous constructor will wait for all dependencies to be done before calling the module constructor.
