@@ -17,12 +17,12 @@ var Sandal = require('sandal');
 var sandal = new Sandal();
 
 sandal
-    .registerClass('module1', function (module2, module3) {})
-    .registerClass('module2', function (module4, module5, done) {
+    .registerService('module1', function (module2, module3) {})
+    .registerService('module2', function (module4, module5, done) {
         setTimeout(function() { done(); }, 500);
     })
     .register('module3', 'any object')
-    .registerClass('module4', function () {});
+    .registerService('module4', function () {});
     .registerFactory('module5', function(module3) {
         return 'another object';
     })
@@ -37,7 +37,7 @@ There are three ways you can register a module:
 
 ```js
 sandal.register(name, implementation);
-sandal.registerClass(name, constructor);
+sandal.registerService(name, constructor);
 sandal.registerFactory(name, factory);
 ```
 
@@ -45,12 +45,11 @@ Resolving an implementation registered with `register` will return the same inst
 Any type of object can be registered except `undefined`.
 Registering a constructor requires a `function`. When resolving the constructor will be called the first time. The resulting object will be returned and resolving multiple times will return the same instance without calling the constructor again.
 If the constructor takes arguments they will be automatically resolved based on argument name and injected before the constructor is called.
-Registering a factory requires a `function`. When resolving the factory function will be called the first time. Similar to registering classes, the factory function will only be called once and arguments automatically resolved based on argument name before the factory is called.
+Registering a factory requires a `function`. When resolving the factory function will be called the first time. Similar to registering services, the factory function will only be called once and arguments automatically resolved based on argument name before the factory is called.
 
 There are three reserved words that can not be used as names:
 * `sandal` will inject the ioc container
-* `done` will inject a done callback, pa
-* `error` returns any error during resolving
+* `done` will inject a done callback
 
 ### Resolve
 
@@ -62,6 +61,7 @@ sandal.resolve(name, callback);
 sandal.resolve(nameArray, callback);
 ```
 
+The first argument of the callback will be any error from resolving.
 Resolving with only a callback will user the argument names of the callback function.
 Resolving with a name will resolve based on the provided name and inject into the callback.
 Resolving with an array of names will resolve based on the provided names and inject into the callback in the same order.

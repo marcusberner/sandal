@@ -12,23 +12,23 @@ test('Register and resolve', function (t) {
 	});
 
 	var result;
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.name, 'service name');
 	});
 
 });
 
-test('Register and resolve class', function (t) {
+test('Register and resolve service', function (t) {
 
 	t.plan(1);
 
 	var sandal = new Sandal();
-	sandal.registerClass('service', function() {
+	sandal.registerService('service', function() {
 		this.name = 'service name'
 	});
 
 	var result;
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.name, 'service name');
 	});
 
@@ -45,7 +45,7 @@ test('Register and resolve factory', function (t) {
 		};
 	});
 
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.name, 'service name');
 	});
 
@@ -60,11 +60,11 @@ test('Comments in constructor', function (t) {
 	{
 		this.name = 'service1' + service2 + service3;
 	};
-	sandal.registerClass('service1', service1);
+	sandal.registerService('service1', service1);
 	sandal.register('service2', 'service2');
 	sandal.register('service3', 'service3');
 
-	sandal.resolve(function(service1) {
+	sandal.resolve(function(err, service1) {
 		t.equal(service1.name, 'service1service2service3');
 	});
 
@@ -79,11 +79,11 @@ test('Comments in named constructor', function (t) {
 	{
 		this.name = 'service1' + service2 + service3;
 	};
-	sandal.registerClass('service1', service1);
+	sandal.registerService('service1', service1);
 	sandal.register('service2', 'service2');
 	sandal.register('service3', 'service3');
 
-	sandal.resolve(function(service1) {
+	sandal.resolve(function(err, service1) {
 		t.equal(service1.name, 'service1service2service3');
 	});
 
@@ -98,10 +98,10 @@ test('Independent containers', function (t) {
 	sandal1.register('service', 'service1');
 	sandal2.register('service', 'service2');
 
-	sandal1.resolve(function(service) {
+	sandal1.resolve(function(err, service) {
 		t.equal(service, 'service1');
 	});
-	sandal2.resolve(function(service) {
+	sandal2.resolve(function(err, service) {
 		t.equal(service, 'service2');
 	});
 
@@ -123,14 +123,14 @@ test('Register with a name that was already registered', function (t) {
 
 });
 
-test('Class with a name that was already registered', function (t) {
+test('Service with a name that was already registered', function (t) {
 
 	t.plan(1);
 
 	var sandal = new Sandal();
 	sandal.register('service', {});
 	try {
-		sandal.registerClass('service', function() {});
+		sandal.registerService('service', function() {});
 		t.ok(false);
 	}
 	catch (err) {
@@ -145,7 +145,7 @@ test('Register constructor that is not a function', function (t) {
 
 	var sandal = new Sandal();
 	try {
-		sandal.registerClass('service', {});
+		sandal.registerService('service', {});
 		t.ok(false);
 	}
 	catch (err) {
@@ -286,9 +286,9 @@ test('Constructor and prototype', function (t) {
 	service.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerClass('service', service);
+	sandal.registerService('service', service);
 
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 'service name');
 	});
 
@@ -327,18 +327,18 @@ test('Constructor with dependencies', function (t) {
 	service4.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerClass('service1', service1);
-	sandal.registerClass('service2', service2);
-	sandal.registerClass('service3', service3);
-	sandal.registerClass('service4', service4);
+	sandal.registerService('service1', service1);
+	sandal.registerService('service2', service2);
+	sandal.registerService('service3', service3);
+	sandal.registerService('service4', service4);
 
-	sandal.resolve(function(service1) {
+	sandal.resolve(function(err, service1) {
 		t.equal(service1.getName(), 'service1service2service3service4');
 	});
 
 });
 
-test('Resolve class twice', function (t) {
+test('Resolve service twice', function (t) {
 
 	t.plan(2);
 
@@ -351,13 +351,13 @@ test('Resolve class twice', function (t) {
 	service.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerClass('service', service);
+	sandal.registerService('service', service);
 
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 1);
 	});
 
-	sandal.resolve(function(service) {
+	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 1, 'Should get the same instance');
 	});
 
@@ -369,9 +369,9 @@ test('Circular dependencies', function (t) {
 
 	var sandal = new Sandal();
 
-	sandal.registerClass('service1', function (service2) {});
-	sandal.registerClass('service2', function (service3) {});
-	sandal.registerClass('service3', function (service1) {});
+	sandal.registerService('service1', function (service2) {});
+	sandal.registerService('service2', function (service3) {});
+	sandal.registerService('service3', function (service1) {});
 
 	sandal.resolve(function(error, service1) {
 		t.notEqual(error, undefined);
@@ -379,7 +379,7 @@ test('Circular dependencies', function (t) {
 
 });
 
-test('Async class constructor', function (t) {
+test('Async service constructor', function (t) {
 
 	t.plan(5);
 
@@ -403,11 +403,11 @@ test('Async class constructor', function (t) {
 		t.equal(order, 2);
 	};
 
-	sandal.registerClass('service1', service1);
-	sandal.registerClass('service2', service2);
-	sandal.registerClass('service3', service3);
+	sandal.registerService('service1', service1);
+	sandal.registerService('service2', service2);
+	sandal.registerService('service3', service3);
 
-	sandal.resolve(function(service1) {
+	sandal.resolve(function(err, service1) {
 		order++;
 		t.equal(order, 5);
 	});
@@ -442,7 +442,7 @@ test('Async factory constructor', function (t) {
 	sandal.registerFactory('service2', service2);
 	sandal.registerFactory('service3', service3);
 
-	sandal.resolve(function(service1) {
+	sandal.resolve(function(err, service1) {
 		order++;
 		t.equal(order, 5);
 	});
@@ -465,14 +465,14 @@ test('Register done', function (t) {
 
 });
 
-test('Register done class', function (t) {
+test('Register done service', function (t) {
 
 	t.plan(1);
 
 	var sandal = new Sandal();
 
 	try {
-		sandal.registerClass('done', function() {});
+		sandal.registerService('done', function() {});
 		t.ok(false);
 	}
 	catch (err) {
@@ -490,7 +490,7 @@ test('Resolve by name', function (t) {
 		name: 'service name'
 	});
 
-	sandal.resolve('service', function(otherName) {
+	sandal.resolve('service', function(err, otherName) {
 		t.equal(otherName.name, 'service name');
 	});
 
@@ -508,7 +508,7 @@ test('Resolve multiple', function (t) {
 		name: 'service name 2'
 	});
 
-	sandal.resolve(function(service1, error, service2) {
+	sandal.resolve(function(error, service1, service2) {
 		t.equal(error, undefined);
 		t.equal(service1.name, 'service name 1');
 		t.equal(service2.name, 'service name 2');
@@ -528,8 +528,8 @@ test('Resolve multiple by name', function (t) {
 		name: 'service name 2'
 	});
 
-	sandal.resolve(['service1', 'error', 'service2'], function(otherName1, otherNameForError, otherName2) {
-		t.equal(otherNameForError, undefined);
+	sandal.resolve(['service1', 'service2'], function(err, otherName1, otherName2) {
+		t.equal(err, undefined);
 		t.equal(otherName1.name, 'service name 1');
 		t.equal(otherName2.name, 'service name 2');
 	});
@@ -545,11 +545,11 @@ test('Fluent', function (t) {
 		.register('service1', { name: 'service name 1' })
 		.clear()
 		.register('service1', { name: 'service name 1.2' })
-		.registerClass('service2', function(){ this.name = 'service name 2'; })
-		.resolve(function(service1) {
+		.registerService('service2', function(){ this.name = 'service name 2'; })
+		.resolve(function(err, service1) {
 			t.equal(service1.name, 'service name 1.2');
 		})
-		.resolve('service2', function(service) {
+		.resolve('service2', function(err, service) {
 			t.equal(service.name, 'service name 2');
 		});
 
@@ -562,7 +562,7 @@ test('Error in constructor', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerClass('service1', function(done){ done(err); })
+		.registerService('service1', function(done){ done(err); })
 		.resolve(function(error, service1) {
 			t.equal(error, err);
 		});
@@ -576,8 +576,8 @@ test('Error in dependency constructor', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerClass('service1', function(service2){})
-		.registerClass('service2', function(done){ done(err); })
+		.registerService('service1', function(service2){})
+		.registerService('service2', function(done){ done(err); })
 		.resolve(function(error, service1) {
 			t.equal(error, err);
 		});
@@ -592,8 +592,8 @@ test('Error in factory', function (t) {
 	var sandal = new Sandal();
 	sandal
 		.registerFactory('service1', function(done){ done(err); })
-		.resolve(function(error, service1) {
-			t.equal(error, err);
+		.resolve(function(e, service1) {
+			t.equal(e, err);
 		});
 
 });
@@ -607,6 +607,68 @@ test('Error in dependency factory', function (t) {
 	sandal
 		.registerFactory('service1', function(service2){})
 		.registerFactory('service2', function(done){ done(err); })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Factory throws', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerFactory('service1', function(){
+			throw err;
+		})
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Dependency factory throws', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerFactory('service1', function(service2){})
+		.registerFactory('service2', function(){ throw err; })
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Service throws', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerService('service1', function(){
+			throw err;
+		})
+		.resolve(function(error, service1) {
+			t.equal(error, err);
+		});
+
+});
+
+test('Dependency service throws', function (t) {
+
+	t.plan(1);
+
+	var err = new Error('something went wrong');
+	var sandal = new Sandal();
+	sandal
+		.registerService('service1', function(service2){})
+		.registerService('service2', function(){ throw err; })
 		.resolve(function(error, service1) {
 			t.equal(error, err);
 		});
