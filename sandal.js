@@ -89,18 +89,18 @@ var resolveService = function(name, services, resolveChain, callback, done) {
 
 		for(i = 0; i < dependencyCount; i++) {
 
-			index = i;
+			(function(index) {
+				if (argumentNames[index] === 'done') {
+					hasDoneCallback = true;
+					dependencies[index] = function(err) { done(err); }
+					dependencyDone();
+					return;
+				}
 
-			if (argumentNames[index] === 'done') {
-				hasDoneCallback = true;
-				dependencies[index] = function(err) { done(err); }
-				dependencyDone();
-				continue;
-			}
-
-			resolveService(argumentNames[index], services, resolveChain.slice(0), function(dependency) {
-				dependencies[index] = dependency;
-			}, dependencyDone);
+				resolveService(argumentNames[index], services, resolveChain.slice(0), function(dependency) {
+					dependencies[index] = dependency;
+				}, dependencyDone);
+			})(i);
 
 		}
 
