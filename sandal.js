@@ -2,7 +2,9 @@
 
 var Sandal = (function () {
 
-	var _getArgumentNames = function(func) {
+    var Sandal, _getArgumentNames, _hasCircularDependencies, _callResolvedCallbacks, _createObject, _resolve;
+
+	_getArgumentNames = function(func) {
 		var functionString, argumentList;
 		functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
 		argumentList = functionString.slice(functionString.indexOf('(')+1, functionString.indexOf(')')).match(/([^\s,]+)/g);
@@ -12,7 +14,7 @@ var Sandal = (function () {
 		return argumentList;
 	};
 
-	var _hasCircularDependencies = function (dependencyNames, resolveChain) {
+	_hasCircularDependencies = function (dependencyNames, resolveChain) {
 		var i, j;
 		for (var j = 0; j < dependencyNames.length; j++) {
 			for (var i = 0; i < resolveChain.length; i++) {
@@ -24,75 +26,89 @@ var Sandal = (function () {
 		return false;
 	};
 
-	var _callResolvedCallbacks = function (err, service) {
-		for (var i = 0; i < service.resolvedCallbacks.length; i++) {
-			service.resolvedCallbacks[i](err);
+	_callResolvedCallbacks = function (err, item) {
+		for (var i = 0; i < item.resolvedCallbacks.length; i++) {
+            item.resolvedCallbacks[i](err);
 		}
-		service.resolvedCallbacks = [];
-		service.isResolving = false;
+        item.resolvedCallbacks = [];
+        item.isResolving = false;
 	};
 
-	var _createObject = function (service, dependencies) {
-		if (service.klass) {
-			try {
-				service.obj = Object.create(service.klass.prototype);
-				service.klass.prototype.constructor.apply(service.obj, dependencies);
-			} catch (err) {
-				_callResolvedCallbacks(err, service);
-				return;
-			}
-		} else {
-			try {
-				service.obj = service.factory.apply(null, dependencies);
-			} catch (err) {
-				_callResolvedCallbacks(err, service);
-				return;
-			}
-		}
-	};
+    _createObject = function (item, dependencies) {
+        if (item.ctor) {
+            var obj = Object.create(item.ctor.prototype);
+            item.ctor.prototype.constructor.apply(obj, dependencies);
+            return obj;
+        } else {
+            return item.factory.apply(null, dependencies);
+        }
+    };
 
-	var _resolve = function(name, services, resolveChain, callback) {
+	_resolve = function(name, itmes, resolveChain, callback) {
 
-		var i, service, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolveCount;
+		var i, obj, done, isDone, item, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolveCount;
 
-		service = services[name];
-		resolveChain.push(name);
+        resolveChain.push(name);
 
-		if (!service) {
-			callback(new Error('No implementation registered for ' + name)); //done
+        item = itmes[name];
+
+        if (!itmes[name]) {
+            callback(new Error('No implementation registered for ' + name));
+            return;
+        }
+
+        done = function (err, obj) {
+            if (!isDone) {
+                isDone = true;
+                if (item.lifecycle === 'singleton') {
+                    item.singleton = obj;
+                    _callResolvedCallbacks(err, item);
+                } else {
+                    callback(err, obj);
+
+                }
+            }
+        };
+
+
+        if (item.lifecycle === 'singleton') {
+
+            item.resolvedCallbacks = item.resolvedCallbacks || [];
+            item.resolvedCallbacks.push(function(err) {
+                callback(err, item.singleton);
+            });
+
+            if (item.isResolving) {
+                return;
+            }
+            item.isResolving = true;
+
+            if (item.hasOwnProperty('singleton')) {
+                done(null, item.singleton);
+                return;
+            }
+
+        }
+
+		if (!item.ctor && !item.factory) {
+            done(new Error('No valid implementation registered for ' + name));
 			return;
 		}
 
-		service.resolvedCallbacks = service.resolvedCallbacks || [];
-		service.resolvedCallbacks.push(function(err) {
-			callback(err, service.obj);
-		});
-
-		if (service.isResolving) {
-			return;
-		}
-		service.isResolving = true;
-
-		if (service.hasOwnProperty('obj')) {
-			_callResolvedCallbacks(null, service);
-			return;
-		}
-
-		if (!service.klass && !service.factory) {
-			_callResolvedCallbacks(new Error('No valid implementation registered for ' + name), service);
-			return;
-		}
-
-		dependencyNames = _getArgumentNames(service.klass || service.factory);
+		dependencyNames = _getArgumentNames(item.ctor || item.factory);
 		if (_hasCircularDependencies(dependencyNames, resolveChain)) {
-			_callResolvedCallbacks(new Error('There are circular dependencies in resolve chain: ' + resolveChain), service);
-			return;
+            done(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
+            return;
 		}
 
 		dependencyCount = dependencyNames.length;
 		if (dependencyCount === 0) {
-			_createObject(service, []);
-			_callResolvedCallbacks(null, service);
+            try {
+                obj = _createObject(item, []);
+                done(null, obj);
+            } catch (err) {
+                done(err);
+            }
 		}
 
 		dependencies = [];
@@ -103,29 +119,39 @@ var Sandal = (function () {
 			(function(index) {
 
 				var dependencyCallback = function (err, dependency) {
-					if (err) {
-						_callResolvedCallbacks(err, service);
+
+                    if (err) {
+						done(err);
 						return;
 					}
 					dependencies[index] = dependency;
 					resolveCount++;
+
 					if (resolveCount === dependencyCount) {
-						_createObject(service, dependencies);
+
+                        try {
+                            obj = _createObject(item, dependencies);
+                        } catch (err) {
+                            done(err);
+                        }
+
 						if (!hasDoneCallback) {
-							_callResolvedCallbacks(null, service);
+                            console.log('should call done');
+							done(null, obj);
 						}
 					}
 				};
 
-				if (dependencyNames[index] === 'done') {
-					hasDoneCallback = true;
-					dependencyCallback(null, function(err) {
-						_callResolvedCallbacks(err, service);
-					});
-					return;
-				}
 
-				_resolve(dependencyNames[index], services, resolveChain.slice(0), dependencyCallback);
+                if (dependencyNames[index] === 'done') {
+                    hasDoneCallback = true;
+                    dependencyCallback(null, function(err) {
+                        done(err, obj);
+                    });
+                    return;
+                }
+
+				_resolve(dependencyNames[index], itmes, resolveChain.slice(0), dependencyCallback);
 
 			})(i);
 
@@ -133,58 +159,61 @@ var Sandal = (function () {
 
 	};
 
-	var Sandal = function() {
+	Sandal = function() {
 		this.clear();
 	};
 
-	Sandal.prototype.registerService = function(name, klass) {
-		if (typeof klass !== 'function') {
+	Sandal.prototype.registerService = function(name, ctor, transient) {
+		if (typeof ctor !== 'function') {
 			throw new Error('Service must be a function');
 		}
-		if (name === 'done' || this.services[name]) {
+		if (name === 'done' || this.itmes[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.services[name] = {
-			klass: klass
+		this.itmes[name] = {
+            ctor: ctor,
+            lifecycle: transient ? 'transient' : 'singleton'
 		};
 		return this;
 	};
 
-	Sandal.prototype.registerFactory = function(name, factory) {
+	Sandal.prototype.registerFactory = function(name, factory, transient) {
 		if (typeof factory !== 'function') {
 			throw new Error('Function required');
 		}
-		if (name === 'done' || this.services[name]) {
+		if (name === 'done' || this.itmes[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.services[name] = {
-			factory: factory
+		this.itmes[name] = {
+			factory: factory,
+            lifecycle: transient ? 'transient' : 'singleton'
 		};
 		return this;
 	};
 
 	Sandal.prototype.register = function(name, obj) {
-		if (name === 'done' || this.services[name]) {
+		if (name === 'done' || this.itmes[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.services[name] = {
-			obj: obj
+		this.itmes[name] = {
+            singleton: obj,
+            lifecycle: 'singleton'
 		};
 		return this;
 	};
 
 	Sandal.prototype.resolve = function(arg1, arg2) {
 
-		var that, callback, serviceNames, serviceCount, resolvedCount, resolved, i;
+		var that, callback, itemNames, itemCount, resolvedCount, resolved, i;
 
 		that = this;
 		if (typeof arg1 === 'string') {
-			serviceNames = [ arg1 ];
+            itemNames = [ arg1 ];
 			callback = arg2;
 		} else if (typeof arg1 === 'function') {
 			callback = arg1;
 		} else {
-			serviceNames = arg1;
+            itemNames = arg1;
 			callback = arg2;
 		}
 
@@ -192,26 +221,26 @@ var Sandal = (function () {
 			throw new Error('Callback function required');
 		}
 
-		if (!serviceNames) {
-			serviceNames = _getArgumentNames(callback);
-			serviceNames = serviceNames.splice(1);
+		if (!itemNames) {
+            itemNames = _getArgumentNames(callback);
+            itemNames = itemNames.splice(1);
 		}
 
-		serviceCount = serviceNames.length;
-        if (serviceCount === 0) {
+        itemCount = itemNames.length;
+        if (itemCount === 0) {
             callback(null);
             return;
         }
 
 		resolvedCount = 0;
 		resolved = [];
-		for (i = 0; i < serviceCount; i++) {
+		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(serviceNames[index], that.services, [], function(err, svc) {
+				_resolve(itemNames[index], that.itmes, [], function(err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
-					if (resolvedCount === serviceCount) {
+					if (resolvedCount === itemCount) {
 						callback.apply({}, resolved);
 					}
 				});
@@ -223,9 +252,10 @@ var Sandal = (function () {
 	Sandal.prototype.clear = function(names) {
 
 		if (!names) {
-			this.services = {
+			this.itmes = {
 				sandal: {
-					obj: this
+                    singleton: this,
+                    lifecycle: 'singleton'
 				}
 			};
 			return this;
@@ -239,7 +269,7 @@ var Sandal = (function () {
 			if (names[i] === 'sandal' || names[i] === 'done') {
 				throw new Error('Clearing sandal or done is not allowed');
 			}
-			delete this.services[names[i]];
+			delete this.itmes[names[i]];
 		}
 		return this;
 	};
