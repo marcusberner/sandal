@@ -73,7 +73,7 @@ var Sandal = (function () {
 		}
 		service.isResolving = true;
 
-		if (service.obj !== undefined) {
+		if (service.hasOwnProperty('obj')) {
 			_callResolvedCallbacks(null, service);
 			return;
 		}
