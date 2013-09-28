@@ -164,9 +164,6 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.register = function(name, obj) {
-		if (typeof obj === 'undefined') {
-			throw new Error('Implementation required');
-		}
 		if (name === 'done' || this.services[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
