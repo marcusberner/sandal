@@ -112,7 +112,7 @@ var Sandal = (function () {
 					if (resolveCount === dependencyCount) {
 						_createObject(service, dependencies);
 						if (!hasDoneCallback) {
-							_callResolvedCallbacks(null, service); // how to know if there are errors, and wait for done?
+							_callResolvedCallbacks(null, service);
 						}
 					}
 				};
