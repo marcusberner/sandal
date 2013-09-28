@@ -201,6 +201,11 @@ var Sandal = (function () {
 		}
 
 		serviceCount = serviceNames.length;
+        if (serviceCount === 0) {
+            callback(null);
+            return;
+        }
+
 		resolvedCount = 0;
 		resolved = [];
 		for (i = 0; i < serviceCount; i++) {
