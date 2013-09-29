@@ -136,7 +136,6 @@ var Sandal = (function () {
                         }
 
 						if (!hasDoneCallback) {
-                            console.log('should call done');
 							done(null, obj);
 						}
 					}
