@@ -8,9 +8,9 @@ test('Clear one implementation', function (t) {
 
 	var container = new Sandal();
 	var service = {};
-	container.register('service1', service);
-	container.register('service2', {});
-	container.clear('service2');
+	container.object('service1', service);
+	container.object('service2', {});
+	container.remove('service2');
 	container.resolve(function(error, service2) {
 		t.ok(error, 'should get and error for cleared service');
 	});

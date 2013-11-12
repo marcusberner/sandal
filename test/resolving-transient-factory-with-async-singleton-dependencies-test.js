@@ -30,9 +30,9 @@ test('Resolve transient factory with async singleton dependencies twice', functi
 		}, 10);
     };
 
-	sandal.registerFactory('factory1', factory1, true);
-    sandal.registerFactory('factory2', factory2);
-    sandal.registerFactory('factory3', factory3);
+	sandal.factory('factory1', factory1, true);
+    sandal.factory('factory2', factory2);
+    sandal.factory('factory3', factory3);
 
     t.plan(2);
 

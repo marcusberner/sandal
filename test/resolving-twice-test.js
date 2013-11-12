@@ -15,7 +15,7 @@ test('Resolve service twice', function (t) {
 	service.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerService('service', service);
+	sandal.service('service', service);
 
 	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 1, 'Should get the same instance');

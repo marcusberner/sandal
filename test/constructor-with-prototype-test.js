@@ -14,7 +14,7 @@ test('Constructor and prototype', function (t) {
 	service.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerService('service', service);
+	sandal.service('service', service);
 
 	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 'service name', 'should get the prototype functions');

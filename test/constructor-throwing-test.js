@@ -7,7 +7,7 @@ test('Service throws', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerService('service1', function(){
+		.service('service1', function(){
 			throw err;
 		})
 		.resolve(function(error, service1) {
@@ -22,8 +22,8 @@ test('Dependency service throws', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerService('service1', function(service2){})
-		.registerService('service2', function(){ throw err; })
+		.service('service1', function(service2){})
+		.service('service2', function(){ throw err; })
 		.resolve(function(error, service1) {
 			t.equal(error, err, 'should pass the error');
 			t.end();

@@ -9,9 +9,9 @@ test('Comments in constructor', function (t) {
 	{
 		this.name = 'service1' + service2 + service3;
 	};
-	sandal.registerService('service1', service1);
-	sandal.register('service2', 'service2');
-	sandal.register('service3', 'service3');
+	sandal.service('service1', service1);
+	sandal.object('service2', 'service2');
+	sandal.object('service3', 'service3');
 
 	sandal.resolve(function(err, service1) {
 		t.equal(service1.name, 'service1service2service3', 'should resolve all dependencies correctly');
@@ -27,9 +27,9 @@ test('Comments in named constructor', function (t) {
 	{
 		this.name = 'service1' + service2 + service3;
 	};
-	sandal.registerService('service1', service1);
-	sandal.register('service2', 'service2');
-	sandal.register('service3', 'service3');
+	sandal.service('service1', service1);
+	sandal.object('service2', 'service2');
+	sandal.object('service3', 'service3');
 
 	sandal.resolve(function(err, service1) {
 		t.equal(service1.name, 'service1service2service3', 'should resolve all dependencies correctly');

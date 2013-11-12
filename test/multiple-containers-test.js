@@ -8,8 +8,8 @@ test('Multiple containers', function (t) {
 
 	var sandal1 = new Sandal();
 	var sandal2 = new Sandal();
-	sandal1.register('service', 'service1');
-	sandal2.register('service', 'service2');
+	sandal1.object('service', 'service1');
+	sandal2.object('service', 'service2');
 
 	sandal1.resolve(function(err, service) {
 		t.equal(service, 'service1', 'should get the service from the first container');

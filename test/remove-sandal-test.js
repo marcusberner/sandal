@@ -2,13 +2,13 @@
 var test = require("tap").test,
 	Sandal = require('../sandal.js');
 
-test('Clear done', function (t) {
+test('Clear sandal', function (t) {
 
 	t.plan(1);
 
 	var container = new Sandal();
 	try {
-		container.clear('done');
+		container.remove('sandal');
 		t.ok(false, 'should throw');
 	}
 	catch (err) {

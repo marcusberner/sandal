@@ -27,9 +27,9 @@ test('Async factory', function (t) {
 		t.equal(order, 2, 'should resolve dependencies in the correct order');
 	};
 
-	sandal.registerFactory('factory1', factory1);
-	sandal.registerFactory('factory2', factory2);
-	sandal.registerFactory('factory3', factory3);
+	sandal.factory('factory1', factory1);
+	sandal.factory('factory2', factory2);
+	sandal.factory('factory3', factory3);
 
 	sandal.resolve(function(err, factory1) {
 		order++;

@@ -5,7 +5,7 @@ var test = require("tap").test,
 test('Register and resolve service', function (t) {
 
 	var sandal = new Sandal();
-	sandal.registerService('service', function() {
+	sandal.service('service', function() {
 		this.name = 'service name'
 	});
 

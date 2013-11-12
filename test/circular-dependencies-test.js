@@ -8,9 +8,9 @@ test('Circular dependencies', function (t) {
 
 	var sandal = new Sandal();
 
-	sandal.registerService('service1', function (service2) {});
-	sandal.registerService('service2', function (service3) {});
-	sandal.registerService('service3', function (service1) {});
+	sandal.service('service1', function (service2) {});
+	sandal.service('service2', function (service3) {});
+	sandal.service('service3', function (service1) {});
 
 	sandal.resolve(function(error, service1) {
 		t.ok(error, 'should get an error');

@@ -8,10 +8,10 @@ test('Clear multiple implementations', function (t) {
 
 	var container = new Sandal();
 	var service = {};
-	container.register('service1', service);
-	container.register('service2', {});
-	container.register('service3', {});
-	container.clear([ 'service2', 'service3' ]);
+	container.object('service1', service);
+	container.object('service2', {});
+	container.object('service3', {});
+	container.remove([ 'service2', 'service3' ]);
 	container.resolve(function(error, service2) {
 		t.ok(error, 'should return error for cleared service');
 	});

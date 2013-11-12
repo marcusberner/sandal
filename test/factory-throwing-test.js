@@ -7,7 +7,7 @@ test('Factory throws', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerFactory('service1', function(){
+		.factory('service1', function(){
 			throw err;
 		})
 		.resolve(function(error, service1) {
@@ -22,8 +22,8 @@ test('Dependency factory throws', function (t) {
 	var err = new Error('something went wrong');
 	var sandal = new Sandal();
 	sandal
-		.registerFactory('service1', function(service2){})
-		.registerFactory('service2', function(){ throw err; })
+		.factory('service1', function(service2){})
+		.factory('service2', function(){ throw err; })
 		.resolve(function(error, service1) {
 			t.equal(error, err, 'should pass the error');
 			t.end();

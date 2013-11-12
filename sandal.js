@@ -4,6 +4,13 @@ var Sandal = (function () {
 
     var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve;
 
+	_register = function (container, name, item) {
+		if (name === 'done' || container[name]) {
+			throw new Error(name + ' is already registered');
+		}
+		container[name] = item;
+	};
+
 	_getArgumentNames = function(func) {
 		var functionString, argumentList;
 		functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
@@ -164,50 +171,40 @@ var Sandal = (function () {
 		this.clear();
 	};
 
-	Sandal.prototype.registerService = function(name, ctor, transient) {
+	Sandal.prototype.service = function(name, ctor, transient) {
 		if (typeof ctor !== 'function') {
 			throw new Error('Service must be a function');
 		}
-		if (name === 'done' || this.container[name]) {
-			throw new Error('There is already an implementation registered with the name ' + name);
-		}
-		this.container[name] = {
-            ctor: ctor,
-            lifecycle: transient ? 'transient' : 'singleton'
-		};
+		_register(this.container, name, {
+			ctor: ctor,
+			lifecycle: transient ? 'transient' : 'singleton'
+		});
 		return this;
 	};
 
-	Sandal.prototype.registerFactory = function(name, factory, transient) {
+	Sandal.prototype.factory = function(name, factory, transient) {
 		if (typeof factory !== 'function') {
 			throw new Error('Function required');
 		}
-		if (name === 'done' || this.container[name]) {
-			throw new Error('There is already an implementation registered with the name ' + name);
-		}
-		this.container[name] = {
+		_register(this.container, name, {
 			factory: factory,
-            lifecycle: transient ? 'transient' : 'singleton'
-		};
+			lifecycle: transient ? 'transient' : 'singleton'
+		});
 		return this;
 	};
 
-	Sandal.prototype.register = function(name, obj) {
-		if (name === 'done' || this.container[name]) {
-			throw new Error('There is already an implementation registered with the name ' + name);
-		}
-		this.container[name] = {
-            singleton: obj,
-            lifecycle: 'singleton'
-		};
+	Sandal.prototype.object = function(name, obj) {
+		_register(this.container, name, {
+			singleton: obj,
+			lifecycle: 'singleton'
+		});
 		return this;
 	};
 
 	Sandal.prototype.resolve = function(arg1, arg2) {
 
-		var that, callback, itemNames, itemCount, resolvedCount, resolved, i;
+		var that = this, callback, itemNames, itemCount, resolvedCount, resolved, i;
 
-		that = this;
 		if (typeof arg1 === 'string') {
             itemNames = [ arg1 ];
 			callback = arg2;
@@ -250,28 +247,29 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.clear = function(names) {
-
+	Sandal.prototype.remove = function(names) {
 		if (!names) {
-			this.container = {
-				sandal: {
-                    singleton: this,
-                    lifecycle: 'singleton'
-				}
-			};
 			return this;
 		}
-
 		if (typeof names === 'string') {
 			names = [ names ];
 		}
-
 		for (var i = 0; i < names.length; i++) {
 			if (names[i] === 'sandal' || names[i] === 'done') {
-				throw new Error('Clearing sandal or done is not allowed');
+				throw new Error('Removing ' + names[i] + ' is not allowed');
 			}
 			delete this.container[names[i]];
 		}
+		return this;
+	};
+
+	Sandal.prototype.clear = function() {
+		this.container = {
+			sandal: {
+				singleton: this,
+				lifecycle: 'singleton'
+			}
+		};
 		return this;
 	};
 

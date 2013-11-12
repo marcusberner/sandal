@@ -26,9 +26,9 @@ test('Async service constructor', function (t) {
 		t.equal(order, 2, 'should resolve dependencies in the correct order');
 	};
 
-	sandal.registerService('service1', service1);
-	sandal.registerService('service2', service2);
-	sandal.registerService('service3', service3);
+	sandal.service('service1', service1);
+	sandal.service('service2', service2);
+	sandal.service('service3', service3);
 
 	sandal.resolve(function(err, service1) {
 		order++;

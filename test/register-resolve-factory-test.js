@@ -5,7 +5,7 @@ var test = require("tap").test,
 test('Register and resolve factory', function (t) {
 
 	var sandal = new Sandal();
-	sandal.registerFactory('service', function() {
+	sandal.factory('service', function() {
 		return {
 			name: 'service name'
 		};

@@ -7,7 +7,7 @@ test('Factory returning undefined', function (t) {
 	var sandal = new Sandal(),
         count = 0;
 
-    sandal.registerFactory('myFactory', function () {
+    sandal.factory('myFactory', function () {
         count++;
         return undefined;
     }).resolve(function (err, myFactory) {

@@ -8,7 +8,7 @@ test('Register constructor that is not a function', function (t) {
 
 	var sandal = new Sandal();
 	try {
-		sandal.registerService('service', {});
+		sandal.service('service', {});
 		t.ok(false, 'should throw');
 	}
 	catch (err) {

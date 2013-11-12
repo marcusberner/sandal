@@ -10,7 +10,7 @@ test('Register done', function (t) {
 	var sandal = new Sandal();
 
 	try {
-		sandal.register('done', {});
+		sandal.object('done', {});
 		t.ok(false, 'should throw');
 	}
 	catch (err) {
@@ -26,7 +26,7 @@ test('Register done service', function (t) {
 	var sandal = new Sandal();
 
 	try {
-		sandal.registerService('done', function() {});
+		sandal.service('done', function() {});
 		t.ok(false, 'should throw');
 	}
 	catch (err) {
@@ -42,7 +42,7 @@ test('Register done factory', function (t) {
 	var sandal = new Sandal();
 
 	try {
-		sandal.registerFactory('done', function() {});
+		sandal.factory('done', function() {});
 		t.ok(false, 'should throw');
 	}
 	catch (err) {

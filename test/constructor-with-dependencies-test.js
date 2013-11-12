@@ -35,10 +35,10 @@ test('Constructor with dependencies', function (t) {
 	service4.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.registerService('service1', service1);
-	sandal.registerService('service2', service2);
-	sandal.registerService('service3', service3);
-	sandal.registerService('service4', service4);
+	sandal.service('service1', service1);
+	sandal.service('service2', service2);
+	sandal.service('service3', service3);
+	sandal.service('service4', service4);
 
 	sandal.resolve(function(err, service1) {
 		t.equal(service1.getName(), 'service1service2service3service4', 'should resolve all dependencies with prototype');

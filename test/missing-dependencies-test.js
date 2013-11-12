@@ -7,10 +7,10 @@ test('Non-registered dependency', function (t) {
 	var sandal = new Sandal();
 
 	sandal
-		.registerService('service1', function(service2, done){
+		.service('service1', function(service2, done){
 			setTimeout(done, 100);
 		})
-		.registerService('service2', function(service3, done){
+		.service('service2', function(service3, done){
 			setTimeout(done, 100);
 		})
 		.resolve(function(error, service1) {

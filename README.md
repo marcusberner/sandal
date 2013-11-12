@@ -11,18 +11,17 @@ Sandal is a javascript inversion of control container
 ## Usage
 
 ```js
-// For use in browsers, including sandal.js will create a global Sandal constructor
 var Sandal = require('sandal');
 
 var sandal = new Sandal();
 
 sandal
-    .registerService('service1', function (service2, factory1, object1) {})
-    .registerService('service2', function (done) {
+    .service('service1', function (service2, factory1, object1) {})
+    .service('service2', function (done) {
         setTimeout(function() { done(); }, 500);
     })
-    .register('object1', 'any object')
-    .registerFactory('factory1', function(object1) {
+    .object('object1', 'any object')
+    .factory('factory1', function(object1) {
         return 'another object';
     }, true) // Setting transient lifecycle
     .resolve(function(error, service1) {
@@ -35,9 +34,9 @@ sandal
 There are three ways you can register:
 
 ```js
-sandal.register(name, implementation);
-sandal.registerService(name, constructor, transient);
-sandal.registerFactory(name, factory, transient);
+sandal.object(name, implementation);
+sandal.service(name, constructor, transient);
+sandal.factory(name, factory, transient);
 ```
 
 A module registered with `register` will always have a singleton lifecycle. Resolving will always return the same instance.

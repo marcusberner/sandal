@@ -6,7 +6,7 @@ test('Register and resolve', function (t) {
 
 	var sandal = new Sandal();
 
-	sandal.register('service', {
+	sandal.object('service', {
 		name: 'service name'
 	});
 

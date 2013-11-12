@@ -7,9 +7,9 @@ test('Register with a name that was already registered', function (t) {
 	t.plan(1);
 
 	var sandal = new Sandal();
-	sandal.register('service', {});
+	sandal.object('service', {});
 	try {
-		sandal.register('service', {});
+		sandal.object('service', {});
 		t.ok(false, 'should throw');
 	}
 	catch (err) {

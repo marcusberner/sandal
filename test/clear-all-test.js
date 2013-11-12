@@ -7,7 +7,7 @@ test('Clear all implementations', function (t) {
 	t.plan(3);
 
 	var container = new Sandal();
-	container.register('service', {});
+	container.object('service', {});
 	container.clear();
 
 	container.resolve(function(error, service) {

@@ -30,10 +30,10 @@ test('Async factory under service', function (t) {
 		this.dependency = factory1;
 	};
 
-	sandal.registerFactory('factory1', factory1)
-		.registerFactory('factory2', factory2)
-		.registerService('service1', service1)
-		.registerService('service2', service2)
+	sandal.factory('factory1', factory1)
+		.factory('factory2', factory2)
+		.service('service1', service1)
+		.service('service2', service2)
 		.resolve(function (err, service1) {
 			t.equal(service1.dependency, 'I am factory 2', 'should get return value from dependency');
 		});

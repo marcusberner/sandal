@@ -13,7 +13,7 @@ test('Resolve service twice', function (t) {
 		return i;
 	};
 
-	sandal.registerFactory('factory', factory, 'transient');
+	sandal.factory('factory', factory, 'transient');
 
 	sandal.resolve(function(err, factory) {
 		t.equal(factory, 1, 'Should get the return value');

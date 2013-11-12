@@ -8,10 +8,10 @@ test('Fluent', function (t) {
 
 	var sandal = new Sandal();
 	sandal
-		.register('service1', { name: 'service name 1' })
+		.object('service1', { name: 'service name 1' })
 		.clear()
-		.register('service1', { name: 'service name 1.2' })
-		.registerService('service2', function(){ this.name = 'service name 2'; })
+		.object('service1', { name: 'service name 1.2' })
+		.service('service2', function(){ this.name = 'service name 2'; })
 		.resolve(function(err, service1) {
 			t.equal(service1.name, 'service name 1.2');
 		})

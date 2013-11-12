@@ -5,7 +5,7 @@ var test = require("tap").test,
 test('Resolve by name', function (t) {
 
 	var sandal = new Sandal();
-	sandal.register('service', {
+	sandal.object('service', {
 		name: 'service name'
 	});
 
@@ -19,10 +19,10 @@ test('Resolve by name', function (t) {
 test('Resolve multiple by name', function (t) {
 
 	var sandal = new Sandal();
-	sandal.register('service1', {
+	sandal.object('service1', {
 		name: 'service name 1'
 	});
-	sandal.register('service2', {
+	sandal.object('service2', {
 		name: 'service name 2'
 	});
 

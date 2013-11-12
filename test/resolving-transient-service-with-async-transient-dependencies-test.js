@@ -36,9 +36,9 @@ test('Resolve transient service with async singleton dependencies twice', functi
         }, 10);
     };
 
-	sandal.registerService('service1', service1, true);
-    sandal.registerService('service2', service2, true);
-    sandal.registerService('service3', service3, true);
+	sandal.service('service1', service1, true);
+    sandal.service('service2', service2, true);
+    sandal.service('service3', service3, true);
 
     t.plan(2);
 

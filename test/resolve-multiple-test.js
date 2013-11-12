@@ -5,10 +5,10 @@ var test = require("tap").test,
 test('Resolve multiple', function (t) {
 
 	var sandal = new Sandal();
-	sandal.register('service1', {
+	sandal.object('service1', {
 		name: 'service name 1'
 	});
-	sandal.register('service2', {
+	sandal.object('service2', {
 		name: 'service name 2'
 	});
 

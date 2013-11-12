@@ -18,8 +18,8 @@ test('Resolve transient service with transient dependencies twice', function (t)
         this.value =  j.toString();
     };
 
-    sandal.registerService('service1', service1, true);
-    sandal.registerService('service2', service2, true);
+    sandal.service('service1', service1, true);
+    sandal.service('service2', service2, true);
 
     t.plan(2);
 
