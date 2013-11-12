@@ -8,11 +8,11 @@ test('Async factory', function (t) {
 
 	var sandal = new Sandal();
 	var order = 0;
-	var service1 = function (service2, service3) {
+	var factory1 = function (factory2, factory3) {
 		order++;
 		t.equal(order, 4, 'should resolve dependencies in the correct order');
 	};
-	var service2 = function (done) {
+	var factory2 = function (done) {
 		order++;
 		t.equal(order, 1, 'should resolve dependencies in the correct order');
 		setTimeout(function() {
@@ -21,16 +21,16 @@ test('Async factory', function (t) {
 			done();
 		}, 100);
 	};
-	var service3 = function () {
+	var factory3 = function () {
 		order++;
 		t.equal(order, 2, 'should resolve dependencies in the correct order');
 	};
 
-	sandal.registerFactory('service1', service1);
-	sandal.registerFactory('service2', service2);
-	sandal.registerFactory('service3', service3);
+	sandal.registerFactory('factory1', factory1);
+	sandal.registerFactory('factory2', factory2);
+	sandal.registerFactory('factory3', factory3);
 
-	sandal.resolve(function(err, service1) {
+	sandal.resolve(function(err, factory1) {
 		order++;
 		t.equal(order, 5, 'should resolve dependencies in the correct order');
 	});
