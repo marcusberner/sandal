@@ -1,8 +1,10 @@
 # Sandal
 
+Sandal is a javascript inversion of control container
+
 [![Build Status](https://travis-ci.org/marcusberner/sandal.png?branch=master)](https://travis-ci.org/marcusberner/sandal)
 
-Sandal is a javascript inversion of control container
+[![NPM](https://nodei.co/npm/sandal.png?downloads=true)](https://nodei.co/npm/sandal/)
 
 ## Installation
 
