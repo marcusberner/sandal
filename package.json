@@ -1,27 +1,27 @@
 {
-    "name" : "sandal",
-    "description": "Javascript inversion of control container",
-    "version" : "0.8.0",
-    "main" : "sandal",
-    "author": "Marcus Berner <marcus@burner.se>",
-    "devDependencies": {
-        "tap": "~0.4.4"
-    },
-    "scripts": {
-		"test": "./node_modules/.bin/tap ./test"
-    },
-    "keywords": [
-        "sandal",
-        "ioc",
-        "inversion of control",
-        "dependency injection"
-    ],
-	"license": {
-		"type": "MIT",
-		"url": "https://github.com/marcusberner/sandal/raw/master/LICENSE"
-	},
-    "repository": "git://github.com/marcusberner/sandal",
-    "engines": {
-        "node": "*"
-    }
+  "name": "sandal",
+  "description": "Javascript inversion of control container",
+  "version": "1.0.0",
+  "main": "sandal",
+  "author": "Marcus Berner <marcus@burner.se>",
+  "devDependencies": {
+    "tap": "~0.4.4"
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/tap ./test"
+  },
+  "keywords": [
+    "sandal",
+    "ioc",
+    "inversion of control",
+    "dependency injection"
+  ],
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/marcusberner/sandal/raw/master/LICENSE"
+  },
+  "repository": "git://github.com/marcusberner/sandal",
+  "engines": {
+    "node": "*"
+  }
 }
