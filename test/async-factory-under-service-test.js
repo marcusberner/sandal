@@ -18,9 +18,8 @@ test('Async factory under service', function (t) {
 	var factory2 = function (done) {
 		setTimeout(function() {
 			isDone = true;
-			done();
+			done(null, 'I am factory 2');
 		}, 20);
-		return 'I am factory 2';
 	};
 
 	var service1 = function (service2) {

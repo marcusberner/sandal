@@ -8,23 +8,26 @@ test('Resolve transient factory with async transient dependencies twice', functi
 
     var i = 0;
 	var factory1 = function (factory2, done) {
-        i++;
-        setTimeout(done, 10);
-		return i.toString() + factory2;
+        setTimeout(function () {
+			i++;
+			done(null, i.toString() + factory2);
+		}, 10);
 	};
 
     var j = 0;
     var factory2 = function (factory3, done) {
-        j++;
-        setTimeout(done, 10);
-        return factory3 + j.toString();
+        setTimeout(function () {
+			j++;
+			done(null, factory3 + j.toString());
+		}, 10);
     };
 
     var k = 0;
     var factory3 = function (done) {
-        k++;
-        setTimeout(done, 10);
-        return k.toString();
+        setTimeout(function () {
+			k++;
+			done(null, k.toString());
+		}, 10);
     };
 
 	sandal.registerFactory('factory1', factory1, true);

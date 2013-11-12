@@ -2,7 +2,7 @@
 
 var Sandal = (function () {
 
-    var Sandal, _getArgumentNames, _hasCircularDependencies, _callResolvedCallbacks, _createObject, _resolve;
+    var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve;
 
 	_getArgumentNames = function(func) {
 		var functionString, argumentList;
@@ -34,7 +34,7 @@ var Sandal = (function () {
         item.isResolving = false;
 	};
 
-    _createObject = function (item, dependencies) {
+    _createObjectSync = function (item, dependencies) {
         if (item.ctor) {
             var obj = Object.create(item.ctor.prototype);
             item.ctor.prototype.constructor.apply(obj, dependencies);
@@ -44,20 +44,20 @@ var Sandal = (function () {
         }
     };
 
-	_resolve = function(name, itmes, resolveChain, callback) {
+	_resolve = function(name, container, resolveChain, callback) {
 
-		var i, obj, done, isDone, item, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolveCount;
+		var i, obj, resolvingDone, isDone, item, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
 
         resolveChain.push(name);
 
-        item = itmes[name];
+        item = container[name];
 
-        if (!itmes[name]) {
+        if (!item) {
             callback(new Error('No implementation registered for ' + name));
             return;
         }
 
-        done = function (err, obj) {
+		resolvingDone = function (err, obj) {
             if (!isDone) {
                 isDone = true;
                 if (item.lifecycle === 'singleton') {
@@ -65,11 +65,9 @@ var Sandal = (function () {
                     _callResolvedCallbacks(err, item);
                 } else {
                     callback(err, obj);
-
                 }
             }
         };
-
 
         if (item.lifecycle === 'singleton') {
 
@@ -84,36 +82,37 @@ var Sandal = (function () {
             item.isResolving = true;
 
             if (item.hasOwnProperty('singleton')) {
-                done(null, item.singleton);
+				resolvingDone(null, item.singleton);
                 return;
             }
 
         }
 
 		if (!item.ctor && !item.factory) {
-            done(new Error('No valid implementation registered for ' + name));
+			resolvingDone(new Error('No valid implementation registered for ' + name));
 			return;
 		}
 
 		dependencyNames = _getArgumentNames(item.ctor || item.factory);
 		if (_hasCircularDependencies(dependencyNames, resolveChain)) {
-            done(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
+			resolvingDone(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
             return;
 		}
 
 		dependencyCount = dependencyNames.length;
 		if (dependencyCount === 0) {
             try {
-                obj = _createObject(item, []);
-                done(null, obj);
+                obj = _createObjectSync(item, []);
+				resolvingDone(null, obj);
             } catch (err) {
-                done(err);
+				resolvingDone(err);
             }
+			return;
 		}
 
 		dependencies = [];
 		hasDoneCallback = false;
-		resolveCount = 0;
+		resolvedDependenciesCount = 0;
 		for(i = 0; i < dependencyCount; i++) {
 
 			(function(index) {
@@ -121,36 +120,39 @@ var Sandal = (function () {
 				var dependencyCallback = function (err, dependency) {
 
                     if (err) {
-						done(err);
+						resolvingDone(err);
 						return;
 					}
 					dependencies[index] = dependency;
-					resolveCount++;
+					resolvedDependenciesCount++;
 
-					if (resolveCount === dependencyCount) {
+					if (resolvedDependenciesCount === dependencyCount) {
 
                         try {
-                            obj = _createObject(item, dependencies);
+                            obj = _createObjectSync(item, dependencies);
                         } catch (err) {
-                            done(err);
+							resolvingDone(err);
                         }
 
 						if (!hasDoneCallback) {
-							done(null, obj);
+							resolvingDone(null, obj);
 						}
 					}
 				};
 
-
                 if (dependencyNames[index] === 'done') {
                     hasDoneCallback = true;
-                    dependencyCallback(null, function(err) {
-                        done(err, obj);
-                    });
+					if (item.factory && hasDoneCallback) {
+						dependencyCallback(null, resolvingDone);
+					} else {
+						dependencyCallback(null, function(err) {
+							resolvingDone(err, obj);
+						});
+					}
                     return;
                 }
 
-				_resolve(dependencyNames[index], itmes, resolveChain.slice(0), dependencyCallback);
+				_resolve(dependencyNames[index], container, resolveChain.slice(0), dependencyCallback);
 
 			})(i);
 
@@ -166,10 +168,10 @@ var Sandal = (function () {
 		if (typeof ctor !== 'function') {
 			throw new Error('Service must be a function');
 		}
-		if (name === 'done' || this.itmes[name]) {
+		if (name === 'done' || this.container[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.itmes[name] = {
+		this.container[name] = {
             ctor: ctor,
             lifecycle: transient ? 'transient' : 'singleton'
 		};
@@ -180,10 +182,10 @@ var Sandal = (function () {
 		if (typeof factory !== 'function') {
 			throw new Error('Function required');
 		}
-		if (name === 'done' || this.itmes[name]) {
+		if (name === 'done' || this.container[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.itmes[name] = {
+		this.container[name] = {
 			factory: factory,
             lifecycle: transient ? 'transient' : 'singleton'
 		};
@@ -191,10 +193,10 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.register = function(name, obj) {
-		if (name === 'done' || this.itmes[name]) {
+		if (name === 'done' || this.container[name]) {
 			throw new Error('There is already an implementation registered with the name ' + name);
 		}
-		this.itmes[name] = {
+		this.container[name] = {
             singleton: obj,
             lifecycle: 'singleton'
 		};
@@ -235,7 +237,7 @@ var Sandal = (function () {
 		resolved = [];
 		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(itemNames[index], that.itmes, [], function(err, svc) {
+				_resolve(itemNames[index], that.container, [], function(err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
@@ -251,7 +253,7 @@ var Sandal = (function () {
 	Sandal.prototype.clear = function(names) {
 
 		if (!names) {
-			this.itmes = {
+			this.container = {
 				sandal: {
                     singleton: this,
                     lifecycle: 'singleton'
@@ -268,7 +270,7 @@ var Sandal = (function () {
 			if (names[i] === 'sandal' || names[i] === 'done') {
 				throw new Error('Clearing sandal or done is not allowed');
 			}
-			delete this.itmes[names[i]];
+			delete this.container[names[i]];
 		}
 		return this;
 	};
