@@ -173,7 +173,7 @@ var Sandal = (function () {
 
 	Sandal.prototype.service = function (name, ctor, transient) {
 		if (typeof ctor !== 'function') {
-			throw new Error('Service must be a function');
+			throw new Error('Service "' + name + '" must be a function');
 		}
 		_register(this.container, name, {
 			ctor: ctor,
@@ -184,7 +184,7 @@ var Sandal = (function () {
 
 	Sandal.prototype.factory = function (name, factory, transient) {
 		if (typeof factory !== 'function') {
-			throw new Error('Function required');
+			throw new Error('Factory "' + name + '" must be a function');
 		}
 		_register(this.container, name, {
 			factory: factory,
