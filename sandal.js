@@ -11,11 +11,11 @@ var Sandal = (function () {
 		container[name] = item;
 	};
 
-	_getArgumentNames = function(func) {
+	_getArgumentNames = function (func) {
 		var functionString, argumentList;
 		functionString = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg, '');
-		argumentList = functionString.slice(functionString.indexOf('(')+1, functionString.indexOf(')')).match(/([^\s,]+)/g);
-		if(argumentList === null) {
+		argumentList = functionString.slice(functionString.indexOf('(') + 1, functionString.indexOf(')')).match(/([^\s,]+)/g);
+		if (argumentList === null) {
 			argumentList = [];
 		}
 		return argumentList;
@@ -23,8 +23,8 @@ var Sandal = (function () {
 
 	_hasCircularDependencies = function (dependencyNames, resolveChain) {
 		var i, j;
-		for (var j = 0; j < dependencyNames.length; j++) {
-			for (var i = 0; i < resolveChain.length; i++) {
+		for (j = 0; j < dependencyNames.length; j++) {
+			for (i = 0; i < resolveChain.length; i++) {
 				if (resolveChain[i] === dependencyNames[j]) {
 					return true;
 				}
@@ -51,7 +51,7 @@ var Sandal = (function () {
         }
     };
 
-	_resolve = function(name, container, resolveChain, callback) {
+	_resolve = function (name, container, resolveChain, callback) {
 
 		var i, obj, resolvingDone, isDone, item, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
 
@@ -79,7 +79,7 @@ var Sandal = (function () {
         if (item.lifecycle === 'singleton') {
 
             item.resolvedCallbacks = item.resolvedCallbacks || [];
-            item.resolvedCallbacks.push(function(err) {
+            item.resolvedCallbacks.push(function (err) {
                 callback(err, item.singleton);
             });
 
@@ -120,9 +120,9 @@ var Sandal = (function () {
 		dependencies = [];
 		hasDoneCallback = false;
 		resolvedDependenciesCount = 0;
-		for(i = 0; i < dependencyCount; i++) {
+		for (i = 0; i < dependencyCount; i++) {
 
-			(function(index) {
+			(function (index) {
 
 				var dependencyCallback = function (err, dependency) {
 
@@ -152,7 +152,7 @@ var Sandal = (function () {
 					if (item.factory && hasDoneCallback) {
 						dependencyCallback(null, resolvingDone);
 					} else {
-						dependencyCallback(null, function(err) {
+						dependencyCallback(null, function (err) {
 							resolvingDone(err, obj);
 						});
 					}
@@ -167,11 +167,11 @@ var Sandal = (function () {
 
 	};
 
-	Sandal = function() {
+	Sandal = function () {
 		this.clear();
 	};
 
-	Sandal.prototype.service = function(name, ctor, transient) {
+	Sandal.prototype.service = function (name, ctor, transient) {
 		if (typeof ctor !== 'function') {
 			throw new Error('Service must be a function');
 		}
@@ -182,7 +182,7 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.factory = function(name, factory, transient) {
+	Sandal.prototype.factory = function (name, factory, transient) {
 		if (typeof factory !== 'function') {
 			throw new Error('Function required');
 		}
@@ -193,7 +193,7 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.object = function(name, obj) {
+	Sandal.prototype.object = function (name, obj) {
 		_register(this.container, name, {
 			singleton: obj,
 			lifecycle: 'singleton'
@@ -201,7 +201,7 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.resolve = function(arg1, arg2) {
+	Sandal.prototype.resolve = function (arg1, arg2) {
 
 		var that = this, callback, itemNames, itemCount, resolvedCount, resolved, i;
 
@@ -234,7 +234,7 @@ var Sandal = (function () {
 		resolved = [];
 		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(itemNames[index], that.container, [], function(err, svc) {
+				_resolve(itemNames[index], that.container, [], function (err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
@@ -247,7 +247,7 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.remove = function(names) {
+	Sandal.prototype.remove = function (names) {
 		if (!names) {
 			return this;
 		}
@@ -263,7 +263,7 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.clear = function() {
+	Sandal.prototype.clear = function () {
 		this.container = {
 			sandal: {
 				singleton: this,
@@ -277,9 +277,6 @@ var Sandal = (function () {
 
 })();
 
-
-if (typeof module === 'undefined' || typeof module.exports  === 'undefined') {
-	this['Sandal'] = Sandal;
-} else {
+if (module && module.exports) {
 	module.exports = Sandal;
 }
