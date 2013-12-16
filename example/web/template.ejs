@@ -1,0 +1,47 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+
+<h1>Phone book</h1>
+
+<h2>Add contact</h2>
+
+<form method="get" action="/">
+
+	<input type="text" name="name"/>
+	<input type="text" name="number"/>
+
+	<input type="submit" value="Add">
+
+</form>
+
+<h2>My contacts</h2>
+
+<table>
+	<thead>
+		<th>Name</th>
+		<th>Number</th>
+	</thead>
+	<tbody>
+		<% items.forEach(function(item){ %>
+
+		<tr>
+			<td>
+				<%= item.key %>
+			</td>
+			<td>
+				<%= item.value %>
+			</td>
+		</tr>
+
+
+		<% }) %>
+
+		<tr>
+
+		</tr>
+	</tbody>
+</table>
+
+</body>
+</html>

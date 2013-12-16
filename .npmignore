@@ -1,5 +1,6 @@
 .git*
 .travis.yml
 test/
+example/
 .idea/
 .DS_Store
