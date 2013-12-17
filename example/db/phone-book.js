@@ -1,6 +1,6 @@
 var PhoneBook = function (db) {
 
-	console.log('Creating a phone book');
+	console.log('Creating phone book');
 
 	this.db = db;
 };

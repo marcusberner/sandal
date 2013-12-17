@@ -1,6 +1,6 @@
 var HtmlRenderer = function (template, templateEngine) {
 
-	console.log('Creating a HTML renderer');
+	console.log('Creating HTML renderer');
 
 	this.template = template;
 	this.templateEngine = templateEngine;
