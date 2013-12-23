@@ -13,7 +13,7 @@
 require('./register-all')().resolve(function (err, server) {
 
 	if (err) {
-		console.log(err);
+		console.log('Resolve error', err);
 		process.exit(-1);
 	}
 

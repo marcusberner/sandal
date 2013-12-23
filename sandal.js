@@ -53,7 +53,7 @@ var Sandal = (function () {
 
 	_resolve = function (name, container, resolveChain, callback) {
 
-		var i, obj, resolvingDone, isDone, item, dependencyNames, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
+		var i, obj, resolvingDone, isDone, item, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
 
         resolveChain.push(name);
 
@@ -100,13 +100,13 @@ var Sandal = (function () {
 			return;
 		}
 
-		dependencyNames = _getArgumentNames(item.ctor || item.factory);
-		if (_hasCircularDependencies(dependencyNames, resolveChain)) {
+		item.dependencyNames = item.dependencyNames || _getArgumentNames(item.ctor || item.factory);
+		if (_hasCircularDependencies(item.dependencyNames, resolveChain)) {
 			resolvingDone(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
             return;
 		}
 
-		dependencyCount = dependencyNames.length;
+		dependencyCount = item.dependencyNames.length;
 		if (dependencyCount === 0) {
             try {
                 obj = _createObjectSync(item, []);
@@ -147,7 +147,7 @@ var Sandal = (function () {
 					}
 				};
 
-                if (dependencyNames[index] === 'done') {
+                if (item.dependencyNames[index] === 'done') {
                     hasDoneCallback = true;
 					if (item.factory && hasDoneCallback) {
 						dependencyCallback(null, resolvingDone);
@@ -159,7 +159,7 @@ var Sandal = (function () {
                     return;
                 }
 
-				_resolve(dependencyNames[index], container, resolveChain.slice(0), dependencyCallback);
+				_resolve(item.dependencyNames[index], container, resolveChain.slice(0), dependencyCallback);
 
 			})(i);
 
@@ -171,24 +171,36 @@ var Sandal = (function () {
 		this.clear();
 	};
 
-	Sandal.prototype.service = function (name, ctor, transient) {
+	Sandal.prototype.service = function (name, dependencies, ctor, transient) {
+		if (!Array.isArray(dependencies)) {
+			transient = ctor;
+			ctor = dependencies;
+			dependencies = null;
+		}
 		if (typeof ctor !== 'function') {
 			throw new Error('Service "' + name + '" must be a function');
 		}
 		_register(this.container, name, {
 			ctor: ctor,
-			lifecycle: transient ? 'transient' : 'singleton'
+			lifecycle: transient ? 'transient' : 'singleton',
+			dependencyNames: dependencies
 		});
 		return this;
 	};
 
-	Sandal.prototype.factory = function (name, factory, transient) {
+	Sandal.prototype.factory = function (name, dependencies, factory, transient) {
+		if (!Array.isArray(dependencies)) {
+			transient = factory;
+			factory = dependencies;
+			dependencies = null;
+		}
 		if (typeof factory !== 'function') {
 			throw new Error('Factory "' + name + '" must be a function');
 		}
 		_register(this.container, name, {
 			factory: factory,
-			lifecycle: transient ? 'transient' : 'singleton'
+			lifecycle: transient ? 'transient' : 'singleton',
+			dependencyNames: dependencies
 		});
 		return this;
 	};

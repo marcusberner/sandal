@@ -37,6 +37,8 @@ sandal.object('myObject', 'any object');
 
 Resolving a service registered with `.service()` will call the registered object as a constructor and return the resulting object. The arguments to the constructor will be resolved based on name before the constructor is called and injected. Thus all arguments must be registered.
 
+Dependency names can be provided when registering a service. If dependency names are provided the constructor argument names will be ignored. If the dependency names are not provided, minifying or uglifying the code may break the code.
+
 A service has a singleton behaviour by default, meaning that the constructor will only be called once and the same resulting object will be resolved every time. By providing a transient flag as a third argument the constructor will be called every time the service is resolved.
 
 If the constructor requires some asynchronous tasks to be completed before the resulting object is ready to use, a done callback named `done` can be taken as a constructor argument. This will inject a callback that has to be called before the service is resolved. The done callback accepts an error. If an error is provided, that will result in an error when resolving the service or any factory or service dependent on the service.
@@ -55,6 +57,9 @@ var MyTransientService = function (dependency1, done) {
 };
 
 sandal.service('myService', MyService);
+//or
+sandal.service('myService', [ 'dependency1' ], MyService);
+
 sandal.service('myAsyncService', MyAsyncService);
 sandal.service('myTransientService', MyTransientService, true);
 ```
@@ -62,6 +67,8 @@ sandal.service('myTransientService', MyTransientService, true);
 ### Register factory
 
 Resolving a factory registered with `.factory()` will return the value returned by the factory function. Just like a service the default behaviour is singleton but can be made transient by providing the transient flag.
+
+Dependency names can be provided when registering a factory. If dependency names are provided the factory argument names will be ignored. If the dependency names are not provided, minifying or uglifying the code may break the code.
 
 A factory that requires some asynchronous task to be completed should take a `done` callback just like a service. If a factory takes a done callback, the second argument of the done callback will be the resolved object instead of the return value of the factory function.
 
@@ -81,6 +88,9 @@ var MyTransientFactory = function (dependency1) {
 };
 
 sandal.factory('myFactory', MyFactory);
+//or
+sandal.factory('myFactory', [ 'dependency1' ], MyFactory);
+
 sandal.factory('myAsyncFactory', MyAsyncFactory);
 sandal.factory('myTransientFactory', MyTransientFactory, true);
 ```
