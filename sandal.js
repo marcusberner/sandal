@@ -53,7 +53,7 @@ var Sandal = (function () {
 
 	_resolve = function (name, container, resolveChain, callback) {
 
-		var i, obj, resolvingDone, isDone, item, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
+		var i, obj, resolvingDone, item, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
 
         resolveChain.push(name);
 
@@ -65,15 +65,12 @@ var Sandal = (function () {
         }
 
 		resolvingDone = function (err, obj) {
-            if (!isDone) {
-                isDone = true;
-                if (item.lifecycle === 'singleton') {
-                    item.singleton = obj;
-                    _callResolvedCallbacks(err, item);
-                } else {
-                    callback(err, obj);
-                }
-            }
+			if (item.lifecycle === 'singleton') {
+				item.singleton = obj;
+				_callResolvedCallbacks(err, item);
+			} else {
+				callback(err, obj);
+			}
         };
 
         if (item.lifecycle === 'singleton') {
