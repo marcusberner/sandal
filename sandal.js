@@ -149,11 +149,13 @@ var Sandal = (function () {
 
                 if (item.dependencyNames[index] === 'done') {
                     hasDoneCallback = true;
-					if (item.factory && hasDoneCallback) {
+					if (item.factory) {
 						dependencyCallback(null, resolvingDone);
 					} else {
 						dependencyCallback(null, function (err) {
-							resolvingDone(err, obj);
+							setTimeout(function () {
+								resolvingDone(err, obj);
+							}, 0);
 						});
 					}
                     return;
