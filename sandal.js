@@ -60,7 +60,7 @@ var Sandal = (function () {
         item = container[name];
 
         if (!item) {
-            callback(new Error('No implementation registered for ' + name));
+			callback(new Error('No implementation registered for ' + name + ((resolveChain.length < 2) ? '' : (' needed for ' + resolveChain.splice(resolveChain.length - 2, 1)))));
             return;
         }
 
