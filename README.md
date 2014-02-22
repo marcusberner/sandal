@@ -116,6 +116,20 @@ sandal.resolve(['myObject', 'myService', 'myFactory'], function (err, o, s, f) {
 });
 ```
 
+### Tagging
+
+An optional array of tags can be provided as last argument to `.object()`, `.service()` and `.factory()`. Resolving a tag will result in an array with all components tagged with the provided tag.
+
+```js
+sandal.object('myObject', myObject, [ 'myTag' ]);
+sandal.service('myService', myService, [ 'myTag' ]);
+sandal.factory('myFactory', myFactory, [ 'myTag' ]);
+sandal.resolve(function (err, myTag) {
+	// myTag is an array with all tagged components.
+	// Order will be the same as order of registration
+});
+```
+
 ### Remove
 
 Trying to register using a name that is already registered will result in throw an error. To replace a registered component it has to be removed first.
