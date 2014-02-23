@@ -4,23 +4,23 @@ var Sandal = (function () {
 
     var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve;
 
-	_register = function (container, name, item, tags) {
+	_register = function (container, name, item, groups) {
 		if (name === 'done' || container[name]) {
 			throw new Error(name + ' is already registered');
 		}
-		if (tags) {
-			for (var i = 0; i < tags.length; i++) {
-				if (tags[i] === 'done' || (container[tags[i]] && !container[tags[i]].isTag)) {
-					throw new Error(name + ' is already registered and can not be used as tag');
+		if (groups) {
+			for (var i = 0; i < groups.length; i++) {
+				if (groups[i] === 'done' || (container[groups[i]] && !container[groups[i]].isGroup)) {
+					throw new Error(name + ' is already registered and can not be used as group name');
 				}
-				if (container[tags[i]] && container[tags[i]].isTag) {
-					container[tags[i]].dependencyNames.push(name);
+				if (container[groups[i]] && container[groups[i]].isGroup) {
+					container[groups[i]].dependencyNames.push(name);
 				} else {
-					container[tags[i]] = {
+					container[groups[i]] = {
 						factory: function () { return Array.prototype.slice.call(arguments); },
 						lifecycle: 'transient',
 						dependencyNames: [name],
-						isTag: true
+						isGroup: true
 					}
 				}
 			}
@@ -187,15 +187,15 @@ var Sandal = (function () {
 		this.clear();
 	};
 
-	Sandal.prototype.service = function (name, dependencies, ctor, transient, tags) {
+	Sandal.prototype.service = function (name, dependencies, ctor, transient, groups) {
 		if (!Array.isArray(dependencies)) {
-			tags = transient;
+			groups = transient;
 			transient = ctor;
 			ctor = dependencies;
 			dependencies = null;
 		}
 		if (Array.isArray(transient)) {
-			tags = transient;
+			groups = transient;
 			transient = false;
 		}
 		if (typeof ctor !== 'function') {
@@ -205,19 +205,19 @@ var Sandal = (function () {
 			ctor: ctor,
 			lifecycle: transient ? 'transient' : 'singleton',
 			dependencyNames: dependencies
-		}, tags);
+		}, groups);
 		return this;
 	};
 
-	Sandal.prototype.factory = function (name, dependencies, factory, transient, tags) {
+	Sandal.prototype.factory = function (name, dependencies, factory, transient, groups) {
 		if (!Array.isArray(dependencies)) {
-			tags = transient;
+			groups = transient;
 			transient = factory;
 			factory = dependencies;
 			dependencies = null;
 		}
 		if (Array.isArray(transient)) {
-			tags = transient;
+			groups = transient;
 			transient = false;
 		}
 		if (typeof factory !== 'function') {
@@ -227,15 +227,15 @@ var Sandal = (function () {
 			factory: factory,
 			lifecycle: transient ? 'transient' : 'singleton',
 			dependencyNames: dependencies
-		}, tags);
+		}, groups);
 		return this;
 	};
 
-	Sandal.prototype.object = function (name, obj, tags) {
+	Sandal.prototype.object = function (name, obj, groups) {
 		_register(this.container, name, {
 			singleton: obj,
 			lifecycle: 'singleton'
-		}, tags);
+		}, groups);
 		return this;
 	};
 

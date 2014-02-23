@@ -1,18 +1,19 @@
 # Sandal
 
-Sandal is a javascript inversion of control container
-
 [![Build Status](https://travis-ci.org/marcusberner/sandal.png?branch=master)](https://travis-ci.org/marcusberner/sandal)
 
 [![NPM](https://nodei.co/npm/sandal.png?downloads=true)](https://nodei.co/npm/sandal/)
 
+Sandal is a javascript inversion of control container. A sandal container can be used to register and resolve objects. It will also resolve dependencies and inject them.
+
 ## Installation
+
+The source is available for download from [GitHub](https://github.com/marcusberner/sandal). Alternatively, you can install using Node Package Manager (npm):
 
     $ npm install sandal
 
-## Usage
+## API
 
-A sandal container can be used to register and resolve objects.
 
 ### Create a container
 
@@ -21,136 +22,122 @@ var Sandal = require('sandal');
 var sandal = new Sandal();
 ```
 
-### Register object
+### sandal.object(name, obj, [groups])
 
-Resolving an item registered with `.object()` will always return the same object that was registered.
+* `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
-The name of an object, service or factory can not be `sandal` or `done`, since resolving sandal will return the container and done is reserved for the done callback for services and factories.
+* `obj` (any type) The object that will be provided when resolving.
 
-Registering is a synchronous operation and will throw an error if failing.
+* `groups` (Array of strings) Will add the object to the provided groups. "sandal" and "done" are reserved names.
 
+#### Example
 ```js
-sandal.object('myObject', 'any object');
+sandal.object('myObject', 'any object', ['myGroup', 'myOtherGroup']);
 ```
 
-### Register service
+### sandal.service(name, [dependencies], ctor, [transient], [groups])
 
-Resolving a service registered with `.service()` will call the registered object as a constructor and return the resulting object. The arguments to the constructor will be resolved based on name before the constructor is called and injected. Thus all arguments must be registered.
+* `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
-Dependency names can be provided when registering a service. If dependency names are provided the constructor argument names will be ignored. If the dependency names are not provided, minifying or uglifying the code may break the code.
+* `dependencies` (Array of strings) If provided the names in the array will be resolved and injected into the ctor. Otherwise the names of the ctor arguments will be used.
 
-A service has a singleton behaviour by default, meaning that the constructor will only be called once and the same resulting object will be resolved every time. By providing a transient flag as a third argument the constructor will be called every time the service is resolved.
+* `ctor` (function) The service constructor. When resolving, the ctor will be called with the new operator and the result will be provided.
 
-If the constructor requires some asynchronous tasks to be completed before the resulting object is ready to use, a done callback named `done` can be taken as a constructor argument. This will inject a callback that has to be called before the service is resolved. The done callback accepts an error. If an error is provided, that will result in an error when resolving the service or any factory or service dependent on the service.
+* `transient` (boolean) If true the ctor will be called every time the service is resolved, resulting an a new object. Default behavior is singleton where the ctor is only called the first time and the resulting object is provided every time.
+
+* `groups` (Array of strings) Will add the service to the provided groups. "sandal" and "done" are reserved names.
+
+If the constructor requires asynchronous tasks to be completed before the resulting object is ready to use, a done callback named `done` can be taken as a constructor argument. This will inject a callback that has to be called before the service is resolved. The done callback accepts an error. If an error is provided, that will result in an error when resolving the service or any factory or service dependent on the service.
+
+#### Example
 
 ```js
 var MyService = function (dependency1) {
+    this.doStruff = function () {};
 };
-MyService.prototype.doStuff = function () {};
+MyService.prototype.doOtherStuff = function () {};
 
-var MyAsyncService = function (dependency1, done) {
-    dependency1.doSomeAsyncInit(done);
+var MyAsyncService = function (x, done) {
+    doSomeAsyncInit(function (err) {
+        done(err);
+    });
 };
 
-var MyTransientService = function (dependency1, done) {
-    dependency1.doSomeAsyncInit(done);
-};
-
-sandal.service('myService', MyService);
-//or
-sandal.service('myService', [ 'dependency1' ], MyService);
-
-sandal.service('myAsyncService', MyAsyncService);
-sandal.service('myTransientService', MyTransientService, true);
+sandal.service('myService', MyService, true, ['myGroup']);
+sandal.service('myAsyncService', ['myService', 'done'], MyAsyncService);
 ```
 
-### Register factory
+### sandal.factory(name, [dependencies], factory, [transient], [groups])
 
-Resolving a factory registered with `.factory()` will return the value returned by the factory function. Just like a service the default behaviour is singleton but can be made transient by providing the transient flag.
+* `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
-Dependency names can be provided when registering a factory. If dependency names are provided the factory argument names will be ignored. If the dependency names are not provided, minifying or uglifying the code may break the code.
+* `dependencies` (Array of strings) If provided the names in the array will be resolved and injected into the factory. Otherwise the names of the factory arguments will be used.
+
+* `factory` (function) The factory function. When resolving, the factory will be called and the return value will be provided. If one of the dependencies has the name "done", a done callback function will be injected. In that case the provided result will be the second argument to the done callback and not the return value of the factory function.
+
+* `transient` (boolean) If true the factory will be called every time the it is resolved, resulting an a new object. Default behavior is singleton where the factory is only called the first time and the resulting object is provided every time.
+
+* `groups` (Array of strings) Will add the factory to the provided groups. "sandal" and "done" are reserved names.
 
 A factory that requires some asynchronous task to be completed should take a `done` callback just like a service. If a factory takes a done callback, the second argument of the done callback will be the resolved object instead of the return value of the factory function.
 
+#### Example
+
 ```js
-var MyFactory = function (dependency1) {
+var myFactory = function (dependency1) {
     return 'some value';
 };
 
-var MyAsyncFactory = function (dependency1, done) {
-    dependency1.doSomeAsyncInit(function (err) {
+var myAsyncFactory = function (d1, done) {
+    d1.doSomeAsyncInit(function (err) {
         done(err, 'some value');
     });
 };
 
-var MyTransientFactory = function (dependency1) {
-    return 'some value';
-};
-
-sandal.factory('myFactory', MyFactory);
-//or
-sandal.factory('myFactory', [ 'dependency1' ], MyFactory);
-
-sandal.factory('myAsyncFactory', MyAsyncFactory);
-sandal.factory('myTransientFactory', MyTransientFactory, true);
+sandal.factory('myFactory', myFactory, true, ['myGroup']);
+sandal.factory('myAsyncFactory', ['dependency1', 'done'], myAsyncFactory);
 ```
 
-### Resolve
+### sandal.resolve([names], callback)
 
-Resolving can be done by providing a function to `.resolve()`. The first argument of the function will be any error from resolving. The names or the arguments following the error will be matched to the registered names and the function will be called when all requested objects are resolved.
+* `names` (string or Array of strings) If provided, the name/names will be resolved and injected into the callback. The first argument to the callback function will always be any error from resolving. If not provided the names of the callback arguments will be used. The names must match the names used for services, factories, objects or groups. Resolving a group will provide an array of all components in the group in the same order as they were registered.
 
-The name/names or the objects to resolve can also be provided as strings. This will inject them into the provided function in the same order they were specified following the error. When the names are provided as strings the argument names of the callback doesn't matter.
+* `callback` (function) The dependencies will be resolved and injected to the callback function.
 
-Resolving a service or factory will always resolve all dependencies recursively.
-
-Resolving is an asynchronous operation if any of the resolved dependencies are asynchronous.
-
+#### Example
 ```js
-sandal.resolve(function (err, myObject, myService, myFactory) {
+sandal.resolve(function (err, myObject, myService, myFactory, myGroup) {
 });
-
 sandal.resolve('myObject', function (err, o) {
 });
-
-sandal.resolve(['myObject', 'myService', 'myFactory'], function (err, o, s, f) {
+sandal.resolve(['myObject', 'myService', 'myFactory', 'myGroup'], function (err, o, s, f, t) {
 });
 ```
 
-### Tagging
+### sandal.remove(names)
 
-An optional array of tags can be provided as last argument to `.object()`, `.service()` and `.factory()`. Resolving a tag will result in an array with all components tagged with the provided tag.
+* `names` (string or Array of strings) Name/names of objects, factories, services or groups to remove. Removing a group will remove the group but not the components in the group.
 
+#### Example
 ```js
-sandal.object('myObject', myObject, [ 'myTag' ]);
-sandal.service('myService', myService, [ 'myTag' ]);
-sandal.factory('myFactory', myFactory, [ 'myTag' ]);
-sandal.resolve(function (err, myTag) {
-	// myTag is an array with all tagged components.
-	// Order will be the same as order of registration
-});
+sandal.remove('myObject');
+sandal.remove(['myObject', 'myService', 'myFactory', 'myGroup']);
 ```
 
-### Remove
+### sandal.clear()
 
-Trying to register using a name that is already registered will result in throw an error. To replace a registered component it has to be removed first.
+Removes all registered components.
 
-Clearing all registered objects can be done by calling `.clear()`.
-
-Removing one or a set of objects can be done by providing the names to `.remove()`.
-
-Clearing and removing are synchronous operations.
-
+#### Example
 ```js
 sandal.clear();
-sandal.remove('myObject');
-sandal.remove(['myObject', 'myService', 'myFactory']);
 ```
 
 ### Chaining
 
 All sandal operations can be chained.
 
+#### Example
 ```js
-sandal.factory('myFactory', MyFactory).resolve(function (err, myFactory) {
-});
+sandal.factory('myFactory', MyFactory).resolve(function (err, myFactory) {});
 ```
