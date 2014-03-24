@@ -28,13 +28,24 @@ test('Adding tag to service, factory and object', function (t) {
 	sandal.object('object2', 'o2', [ 'tag1' ]);
 
 	sandal.resolve(function(err, tag1, tag2) {
+		var expected1 = {
+				factory1: 'f1',
+				factory2: 'f2',
+				factory3: 'f3o1',
+				service1: { value: 's1' },
+				service2: { value: 's2' },
+				service3: { value: 's3o1' },
+				object1: 'o1',
+				object2: 'o2'
+			},
+			expected2 = {
+				factory1: 'f1',
+				service1: { value: 's1' },
+				object1: 'o1'
+			};
 		t.notOk(err, 'should not fail');
-		t.deepEqual(tag1,
-			[ 'f1', 'f2', 'f3o1', { value: 's1' }, { value: 's2' }, { value: 's3o1' }, 'o1', 'o2' ],
-			'should resolve all tag1 dependencies');
-		t.deepEqual(tag2,
-			[ 'f1', { value: 's1' }, 'o1' ],
-			'should resolve all tag2 dependencies');
+		t.deepEqual(tag1, expected1, 'should resolve all tag1 dependencies');
+		t.deepEqual(tag2, expected2, 'should resolve all tag2 dependencies');
 		t.end();
 	});
 

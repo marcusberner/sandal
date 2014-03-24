@@ -10,19 +10,29 @@ var Sandal = (function () {
 		}
 		if (groups) {
 			for (var i = 0; i < groups.length; i++) {
-				if (groups[i] === 'done' || (container[groups[i]] && !container[groups[i]].isGroup)) {
-					throw new Error(name + ' is already registered and can not be used as group name');
-				}
-				if (container[groups[i]] && container[groups[i]].isGroup) {
-					container[groups[i]].dependencyNames.push(name);
-				} else {
-					container[groups[i]] = {
-						factory: function () { return Array.prototype.slice.call(arguments); },
-						lifecycle: 'transient',
-						dependencyNames: [name],
-						isGroup: true
+				(function (i) {
+					if (groups[i] === 'done' || (container[groups[i]] && !container[groups[i]].isGroup)) {
+						throw new Error(name + ' is already registered and can not be used as group name');
 					}
-				}
+					if (container[groups[i]] && container[groups[i]].isGroup) {
+						container[groups[i]].dependencyNames.push(name);
+					} else {
+						container[groups[i]] = {
+							factory: function () {
+								var result = {};
+								for (var j = 0; j < container[groups[i]].dependencyNames.length; j++) {
+									result[container[groups[i]].dependencyNames[j]] = arguments[j];
+								}
+								return result;
+							},
+							lifecycle: 'transient',
+							dependencyNames: [name],
+							isGroup: true
+						}
+					}
+				})(i);
+
+				
 			}
 		}
 		container[name] = item;

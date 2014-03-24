@@ -100,7 +100,7 @@ sandal.factory('myAsyncFactory', ['dependency1', 'done'], myAsyncFactory);
 
 ### sandal.resolve([names], callback)
 
-* `names` (string or Array of strings) If provided, the name/names will be resolved and injected into the callback. The first argument to the callback function will always be any error from resolving. If not provided the names of the callback arguments will be used. The names must match the names used for services, factories, objects or groups. Resolving a group will provide an array of all components in the group in the same order as they were registered.
+* `names` (string or Array of strings) If provided, the name/names will be resolved and injected into the callback. The first argument to the callback function will always be any error from resolving. If not provided the names of the callback arguments will be used. The names must match the names used for services, factories, objects or groups. Resolving a group will provide an object containing all components in the group. The component will be contained within a property with the same name as the registered name.
 
 * `callback` (function) The dependencies will be resolved and injected to the callback function.
 
