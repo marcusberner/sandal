@@ -70,7 +70,9 @@ var Sandal = (function () {
 
     _createObjectSync = function (item, dependencies) {
         if (item.ctor) {
-            var obj = Object.create(item.ctor.prototype);
+			var obj, O = function () {};
+			O.prototype = item.ctor.prototype;
+			obj = new O();
             item.ctor.prototype.constructor.apply(obj, dependencies);
             return obj;
         } else {
@@ -198,13 +200,13 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.service = function (name, dependencies, ctor, transient, groups) {
-		if (!Array.isArray(dependencies)) {
+		if (!(dependencies instanceof Array)) {
 			groups = transient;
 			transient = ctor;
 			ctor = dependencies;
 			dependencies = null;
 		}
-		if (Array.isArray(transient)) {
+		if (transient instanceof Array) {
 			groups = transient;
 			transient = false;
 		}
@@ -220,13 +222,13 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.factory = function (name, dependencies, factory, transient, groups) {
-		if (!Array.isArray(dependencies)) {
+		if (!(dependencies instanceof Array)) {
 			groups = transient;
 			transient = factory;
 			factory = dependencies;
 			dependencies = null;
 		}
-		if (Array.isArray(transient)) {
+		if (transient instanceof Array) {
 			groups = transient;
 			transient = false;
 		}
@@ -269,9 +271,8 @@ var Sandal = (function () {
 
 		if (!itemNames) {
             itemNames = _getArgumentNames(callback);
-            itemNames = itemNames.splice(1);
+            itemNames = itemNames.splice(1, itemNames.length - 1);
 		}
-
         itemCount = itemNames.length;
         if (itemCount === 0) {
             callback(null);

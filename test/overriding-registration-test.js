@@ -1,5 +1,5 @@
 
-var test = require("tap").test,
+var test = require("tape"),
 	Sandal = require('../sandal.js');
 
 test('Register with a name that was already registered', function (t) {

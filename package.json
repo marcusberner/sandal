@@ -5,10 +5,10 @@
   "main": "sandal",
   "author": "Marcus Berner <marcus@burner.se>",
   "devDependencies": {
-    "tap": "~0.4.4"
+    "tape": "~2.12.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/tap ./test"
+    "test": "tape ./test/*.js ./test/**/*.js"
   },
   "keywords": [
     "sandal",

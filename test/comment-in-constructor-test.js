@@ -1,5 +1,5 @@
 
-var test = require("tap").test,
+var test = require("tape"),
 	Sandal = require('../sandal.js');
 
 test('Comments in constructor', function (t) {

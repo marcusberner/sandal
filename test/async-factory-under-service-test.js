@@ -1,5 +1,5 @@
 
-var test = require("tap").test,
+var test = require("tape"),
 	Sandal = require('../sandal.js');
 
 test('Async factory under service', function (t) {
