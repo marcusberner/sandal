@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/marcusberner/sandal.png?branch=master)](https://travis-ci.org/marcusberner/sandal)
 
+[![browser support](https://ci.testling.com/marcusberner/sandal.png)](https://ci.testling.com/marcusberner/sandal)
+
 [![NPM](https://nodei.co/npm/sandal.png?downloads=true)](https://nodei.co/npm/sandal/)
 
 Sandal is a javascript inversion of control container. A sandal container can be used to register and resolve objects. It will also resolve dependencies and inject them.
