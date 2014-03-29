@@ -263,9 +263,9 @@ var Sandal = (function () {
 			callback = arg2;
 		}
 
-		if (!itemNames && typeof callback !== 'function') return;
+		if (!(itemNames instanceof Array) && typeof callback !== 'function') return;
 
-		if (!itemNames) {
+		if (typeof itemNames === 'undefined') {
             itemNames = _getArgumentNames(callback);
             itemNames = itemNames.splice(1, itemNames.length - 1);
 		}
