@@ -322,6 +322,6 @@ var Sandal = (function () {
 if (typeof module !== 'undefined' && module.exports) {
 	module.exports = Sandal;
 }
-//if (typeof window !== 'undefined') {
-//	window.sandal = new Sandal();
-//}
+if (typeof window !== 'undefined') {
+	window.sandal = new Sandal();
+}
