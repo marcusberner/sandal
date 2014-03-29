@@ -1,6 +1,6 @@
-'use strict';
-
 var Sandal = (function () {
+
+	'use strict';
 
     var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve;
 
@@ -31,8 +31,6 @@ var Sandal = (function () {
 						}
 					}
 				})(i);
-
-				
 			}
 		}
 		container[name] = item;
@@ -265,19 +263,14 @@ var Sandal = (function () {
 			callback = arg2;
 		}
 
-		if (typeof callback !== 'function') {
-			throw new Error('Callback function required');
-		}
+		if (!itemNames && typeof callback !== 'function') return;
 
 		if (!itemNames) {
             itemNames = _getArgumentNames(callback);
             itemNames = itemNames.splice(1, itemNames.length - 1);
 		}
         itemCount = itemNames.length;
-        if (itemCount === 0) {
-            callback(null);
-            return;
-        }
+        if (itemCount === 0) return callback();
 
 		resolvedCount = 0;
 		resolved = [];
@@ -288,7 +281,7 @@ var Sandal = (function () {
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
 					if (resolvedCount === itemCount) {
-						callback.apply({}, resolved);
+						if (callback) callback.apply({}, resolved);
 					}
 				});
 			})(i);
@@ -326,6 +319,9 @@ var Sandal = (function () {
 
 })();
 
-if (module && module.exports) {
+if (typeof module !== 'undefined' && module.exports) {
 	module.exports = Sandal;
+}
+if (typeof window !== 'undefined') {
+	window.sandal = new Sandal();
 }

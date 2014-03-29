@@ -6,11 +6,11 @@
 
 [![NPM](https://nodei.co/npm/sandal.png?downloads=true)](https://nodei.co/npm/sandal/)
 
-Sandal is a javascript inversion of control container. A sandal container can be used to register and resolve objects. It will also resolve dependencies and inject them.
+Sandal is a javascript dependency injection container. A sandal container can be used to register and resolve components. It will resolve dependencies and inject them.
 
 ## Installation
 
-The source is available for download from [GitHub](https://github.com/marcusberner/sandal). Alternatively, you can install using Node Package Manager (npm):
+Download source from [GitHub](https://github.com/marcusberner/sandal) or install using Node Package Manager (npm):
 
     $ npm install sandal
 
@@ -19,12 +19,30 @@ The source is available for download from [GitHub](https://github.com/marcusbern
 
 ### Create a container
 
+
+If the window object is available (in browsers) a container named `sandal` will automatically be created and added to the window object.
+
+The `Sandal` constructor is still available for creating more containers.
+
+
+#### Node.js
 ```js
 var Sandal = require('sandal');
 var sandal = new Sandal();
 ```
 
-### sandal.object(name, obj, [groups])
+
+#### Browser
+```js
+// A global container names sandal is created when the script is executed
+var otherContainer = new Sandal();
+```
+
+### Register components
+
+
+#### sandal.object(name, obj, [groups])
+
 
 * `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
@@ -32,12 +50,15 @@ var sandal = new Sandal();
 
 * `groups` (Array of strings) Will add the object to the provided groups. "sandal" and "done" are reserved names.
 
-#### Example
+
+##### Example
 ```js
 sandal.object('myObject', 'any object', ['myGroup', 'myOtherGroup']);
 ```
 
-### sandal.service(name, [dependencies], ctor, [transient], [groups])
+
+#### sandal.service(name, [dependencies], ctor, [transient], [groups])
+
 
 * `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
@@ -51,7 +72,9 @@ sandal.object('myObject', 'any object', ['myGroup', 'myOtherGroup']);
 
 If the constructor requires asynchronous tasks to be completed before the resulting object is ready to use, a done callback named `done` can be taken as a constructor argument. This will inject a callback that has to be called before the service is resolved. The done callback accepts an error. If an error is provided, that will result in an error when resolving the service or any factory or service dependent on the service.
 
-#### Example
+
+##### Example
+
 
 ```js
 var MyService = function (dependency1) {
@@ -69,7 +92,9 @@ sandal.service('myService', MyService, true, ['myGroup']);
 sandal.service('myAsyncService', ['myService', 'done'], MyAsyncService);
 ```
 
-### sandal.factory(name, [dependencies], factory, [transient], [groups])
+
+#### sandal.factory(name, [dependencies], factory, [transient], [groups])
+
 
 * `name` (string) The name that will be used to resolve the component. "sandal" and "done" are reserved names. 
 
@@ -83,7 +108,9 @@ sandal.service('myAsyncService', ['myService', 'done'], MyAsyncService);
 
 A factory that requires some asynchronous task to be completed should take a `done` callback just like a service. If a factory takes a done callback, the second argument of the done callback will be the resolved object instead of the return value of the factory function.
 
-#### Example
+
+##### Example
+
 
 ```js
 var myFactory = function (dependency1) {
@@ -100,13 +127,18 @@ sandal.factory('myFactory', myFactory, true, ['myGroup']);
 sandal.factory('myAsyncFactory', ['dependency1', 'done'], myAsyncFactory);
 ```
 
-### sandal.resolve([names], callback)
+### Resolving components
+
+
+#### sandal.resolve([names], callback)
+
 
 * `names` (string or Array of strings) If provided, the name/names will be resolved and injected into the callback. The first argument to the callback function will always be any error from resolving. If not provided the names of the callback arguments will be used. The names must match the names used for services, factories, objects or groups. Resolving a group will provide an object containing all components in the group. The component will be contained within a property with the same name as the registered name.
 
 * `callback` (function) The dependencies will be resolved and injected to the callback function.
 
-#### Example
+
+##### Example
 ```js
 sandal.resolve(function (err, myObject, myService, myFactory, myGroup) {
 });
@@ -116,19 +148,30 @@ sandal.resolve(['myObject', 'myService', 'myFactory', 'myGroup'], function (err,
 });
 ```
 
-### sandal.remove(names)
+
+### Removing components
+
+
+Registering a component with an already registered name will throw an error. To replace a component it must be removed before registering the new component.
+
+
+#### sandal.remove(names)
+
 
 * `names` (string or Array of strings) Name/names of objects, factories, services or groups to remove. Removing a group will remove the group but not the components in the group.
 
-#### Example
+
+##### Example
 ```js
 sandal.remove('myObject');
 sandal.remove(['myObject', 'myService', 'myFactory', 'myGroup']);
 ```
 
-### sandal.clear()
+#### sandal.clear()
+
 
 Removes all registered components.
+
 
 #### Example
 ```js
@@ -137,9 +180,11 @@ sandal.clear();
 
 ### Chaining
 
+
 All sandal operations can be chained.
 
-#### Example
+
+##### Example
 ```js
 sandal.factory('myFactory', MyFactory).resolve(function (err, myFactory) {});
 ```

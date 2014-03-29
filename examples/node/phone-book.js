@@ -1,7 +1,4 @@
 var PhoneBook = function (db) {
-
-	console.log('Creating phone book');
-
 	this.db = db;
 };
 
@@ -23,6 +20,10 @@ PhoneBook.prototype.getAll = function (callback) {
 };
 
 PhoneBook.prototype.put = function (name, info, callback) {
+	this.db.put(name, info, callback);
+};
+
+PhoneBook.prototype.clear = function (name, info, callback) {
 	this.db.put(name, info, callback);
 };
 

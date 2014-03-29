@@ -1,6 +1,6 @@
 {
   "name": "sandal",
-  "description": "Javascript inversion of control container",
+  "description": "Javascript dependency injection container",
   "version": "2.1.1",
   "main": "sandal",
   "author": "Marcus Berner <marcus@burner.se>",
@@ -25,9 +25,10 @@
   },
   "keywords": [
     "sandal",
+	"dependency injection",
     "ioc",
-    "inversion of control",
-    "dependency injection"
+    "inversion of control"
+
   ],
   "license": {
     "type": "MIT",

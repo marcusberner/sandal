@@ -3,7 +3,7 @@
  *
  * Get started:
  * 	npm install
- * 	node app
+ * 	node app.js
  * 	Browse to http://localhost:1337
  *
  * Data is stored in the folder ./data that will be created automatically

@@ -3,6 +3,7 @@
 	"main": "app",
 	"author": "Marcus Berner <marcus@burner.se>",
 	"dependencies": {
+		"sandal": "*",
 		"level": "0.18.0",
 		"ejs": "0.8.5"
 	}
