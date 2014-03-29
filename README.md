@@ -10,9 +10,14 @@ Sandal is a javascript dependency injection container. A sandal container can be
 
 ## Installation
 
-Download source from [GitHub](https://github.com/marcusberner/sandal) or install using Node Package Manager (npm):
+Download source from [GitHub](https://github.com/marcusberner/sandal) or install using npm or bower:
 
+### Node package manager
     $ npm install sandal
+
+### Bower
+	$ bower install sandal
+
 
 ## API
 
