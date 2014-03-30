@@ -1,5 +1,6 @@
 {
   "name": "sandal",
+  "description": "Javascript dependency injection container",
   "version": "2.2.1",
   "main": [
     "sandal"
