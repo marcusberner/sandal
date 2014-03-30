@@ -1,19 +1,21 @@
 {
-	"name": "sandal",
-	"version": "2.2.1",
-	"main": "sandal.js",
-	"keywords": [
-		"dependency injection",
-		"ioc",
-		"inversion of control"
-	],
-	"ignore" : [
-		".idea",
-		"examples",
-		"node_modules",
-		"test",
-		".gitignore",
-		".npmignore",
-		".travis.yml"
-	]
+  "name": "sandal",
+  "version": "2.2.1",
+  "main": [
+    "sandal"
+  ],
+  "keywords": [
+    "dependency injection",
+    "ioc",
+    "inversion of control"
+  ],
+  "ignore": [
+    ".idea",
+    "examples",
+    "node_modules",
+    "test",
+    ".gitignore",
+    ".npmignore",
+    ".travis.yml"
+  ]
 }
