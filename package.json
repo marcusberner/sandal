@@ -5,7 +5,7 @@
   "main": "sandal",
   "author": "Marcus Berner <marcus@burner.se>",
   "devDependencies": {
-    "tape": "git://github.com/marcusberner/tape.git",
+    "tape": "2.12.1",
     "uglify-js": "2.4.13"
   },
   "scripts": {
