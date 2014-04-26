@@ -290,17 +290,28 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.remove = function (names) {
+		var i, j, key;
 		if (!names) {
 			return this;
 		}
 		if (typeof names === 'string') {
 			names = [ names ];
 		}
-		for (var i = 0; i < names.length; i++) {
+		for (i = 0; i < names.length; i++) {
 			if (names[i] === 'sandal' || names[i] === 'done') {
 				throw new Error('Removing ' + names[i] + ' is not allowed');
 			}
 			delete this.container[names[i]];
+			for (key in this.container) {
+				if (this.container[key].isGroup) {
+					for (j in this.container[key].dependencyNames) {
+						if (this.container[key].dependencyNames[j] === names[i]) {
+							this.container[key].dependencyNames.splice(j, 1);
+							break;
+						}
+					}
+				}
+			}
 		}
 		return this;
 	};
