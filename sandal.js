@@ -326,6 +326,16 @@ var Sandal = (function () {
 		return this;
 	};
 
+	Sandal.prototype.extend = function (extension) {
+		extension(this, false);
+		return this;
+	};
+
+	Sandal.extend = function (extension) {
+		extension(Sandal, true);
+		return Sandal;
+	};
+
 	return Sandal;
 
 })();
