@@ -182,6 +182,29 @@ Removes all registered components.
 ```js
 sandal.clear();
 ```
+### Extending
+
+Both a container and the contstructor can be extended.
+
+##### Example
+```js
+Sandal.extend(function (constructor, isConstructor) {
+    // isConstructor = true
+    constructor.prototype.someNewFunction = function () {};
+});
+
+var sandal = new Sandal();
+sandal.extend(function (container, isConstructor) {
+    // isConstructor = false
+    container.someOtherNewFunction = function () {};
+});
+```
+
+Expected behaviour is that, extending the constructor applies to all created containers and extending a container only applies to that container.
+
+The same extension can be compatible with both extending the constructor and a container. The same container behaviour is exprected in both cases.
+
+It's recommended to throw an error if the extension is not applicable to the constructor or container base on the `isConstructor` argument, indicating that it was used in a non supported way.
 
 ### Chaining
 
