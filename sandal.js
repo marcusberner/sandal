@@ -93,7 +93,7 @@ var Sandal = (function () {
 
 		resolvingDone = function (err, obj) {
 			if (item.lifecycle === 'singleton') {
-				item.singleton = obj;
+				if (!err) item.singleton = obj;
 				_callResolvedCallbacks(err, item);
 			} else {
 				callback(err, obj);
