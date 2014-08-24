@@ -1,7 +1,7 @@
 {
   "name": "sandal",
   "description": "Javascript dependency injection container",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "main": "sandal",
   "author": "Marcus Berner <marcus@burner.se>",
   "devDependencies": {
