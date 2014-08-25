@@ -211,7 +211,7 @@ var Sandal = (function () {
 		if (typeof ctor !== 'function') {
 			throw new Error('Service "' + name + '" must be a function');
 		}
-		_register(this.container, name, {
+		_register(this._container, name, {
 			ctor: ctor,
 			lifecycle: transient ? 'transient' : 'singleton',
 			dependencyNames: dependencies
@@ -233,7 +233,7 @@ var Sandal = (function () {
 		if (typeof factory !== 'function') {
 			throw new Error('Factory "' + name + '" must be a function');
 		}
-		_register(this.container, name, {
+		_register(this._container, name, {
 			factory: factory,
 			lifecycle: transient ? 'transient' : 'singleton',
 			dependencyNames: dependencies
@@ -242,7 +242,7 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.object = function (name, obj, groups) {
-		_register(this.container, name, {
+		_register(this._container, name, {
 			singleton: obj,
 			lifecycle: 'singleton'
 		}, groups);
@@ -276,7 +276,7 @@ var Sandal = (function () {
 		resolved = [];
 		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(itemNames[index], that.container, [], function (err, svc) {
+				_resolve(itemNames[index], that._container, [], function (err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
@@ -301,12 +301,12 @@ var Sandal = (function () {
 			if (names[i] === 'sandal' || names[i] === 'done') {
 				throw new Error('Removing ' + names[i] + ' is not allowed');
 			}
-			delete this.container[names[i]];
-			for (key in this.container) {
-				if (this.container[key].isGroup) {
-					for (j in this.container[key].dependencyNames) {
-						if (this.container[key].dependencyNames[j] === names[i]) {
-							this.container[key].dependencyNames.splice(j, 1);
+			delete this._container[names[i]];
+			for (key in this._container) {
+				if (this._container[key].isGroup) {
+					for (j in this._container[key].dependencyNames) {
+						if (this._container[key].dependencyNames[j] === names[i]) {
+							this._container[key].dependencyNames.splice(j, 1);
 							break;
 						}
 					}
@@ -317,7 +317,7 @@ var Sandal = (function () {
 	};
 
 	Sandal.prototype.clear = function () {
-		this.container = {
+		this._container = {
 			sandal: {
 				singleton: this,
 				lifecycle: 'singleton'
@@ -342,7 +342,4 @@ var Sandal = (function () {
 
 if (typeof module !== 'undefined' && module.exports) {
 	module.exports = Sandal;
-}
-if (typeof window !== 'undefined') {
-	window.sandal = new Sandal();
 }
