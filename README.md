@@ -24,12 +24,6 @@ Download source from [GitHub](https://github.com/marcusberner/sandal) or install
 
 ### Create a container
 
-
-If the window object is available (in browsers) a container named `sandal` will automatically be created and added to the window object.
-
-The `Sandal` constructor is still available for creating more containers.
-
-
 #### Node.js
 ```js
 var Sandal = require('sandal');
@@ -39,8 +33,7 @@ var sandal = new Sandal();
 
 #### Browser
 ```js
-// A global container names sandal is created when the script is executed
-var otherContainer = new Sandal();
+var sandal = new Sandal();
 ```
 
 ### Register components
