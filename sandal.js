@@ -316,6 +316,10 @@ var Sandal = (function () {
 		return this;
 	};
 
+	Sandal.prototype.has = function (name) {
+		return !!this._container[name];
+	};
+
 	Sandal.prototype.clear = function () {
 		this._container = {
 			sandal: {

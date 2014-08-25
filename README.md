@@ -182,6 +182,25 @@ Removes all registered components.
 ```js
 sandal.clear();
 ```
+
+### Checking component
+
+To check if a component has been registered, use the `.has(name)` function.
+
+#### sandal.has(name)
+
+
+* `name` (string) Name of object, factory, service or group to look for.
+
+##### Example
+```js
+sandal.object('myObject', { some: 'data' });
+
+sandal.has('myObject'); // Returns true
+sandal.has('yourObject'); // Returns false
+sandal.has('sandal'); // Returns true since the container is always available
+```
+
 ### Extending
 
 Both a container and the contstructor can be extended.
