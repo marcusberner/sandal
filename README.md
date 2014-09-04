@@ -146,11 +146,11 @@ sandal.resolve(['myObject', 'myService', 'myFactory', 'myGroup'], function (err,
 });
 ```
 
-#### sandal.resolveAsFactory(factory, [names], callback)
+#### sandal.resolveAsFactory(factory, [dependencies], callback)
 
 * `factory` (function) The factory function to resolve. The factory will not be added to the container but resolved as if it was added and then resolved.
 
-* `names` (Array of strings) If provided, the name/names will be resolved and injected into the factory.
+* `dependencies` (Array of strings) If provided, the name/names will be resolved and injected into the factory.
 
 * `callback` (function) The resolved factory will be passed to the callback as the second argument. It failing the error will be passed as a first argument.
 
@@ -165,11 +165,11 @@ sandal.resolveAsFactory(function (myObject) {
 });
 ```
 
-#### sandal.resolveAsService(service, [names], callback)
+#### sandal.resolveAsService(service, [dependencies], callback)
 
 * `service` (function) The service constructor. The service will not be added to the container but resolved as if it was added and then resolved.
 
-* `names` (Array of strings) If provided, the name/names will be resolved and injected into the service constructor.
+* `dependencies` (Array of strings) If provided, the name/names will be resolved and injected into the service constructor.
 
 * `callback` (function) The resolved service will be passed to the callback as the second argument. It failing the error will be passed as a first argument.
 
