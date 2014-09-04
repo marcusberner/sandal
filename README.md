@@ -146,6 +146,44 @@ sandal.resolve(['myObject', 'myService', 'myFactory', 'myGroup'], function (err,
 });
 ```
 
+#### sandal.resolveAsFactory(factory, [names], callback)
+
+* `factory` (function) The factory function to resolve. The factory will not be added to the container but resolved as if it was added and then resolved.
+
+* `names` (Array of strings) If provided, the name/names will be resolved and injected into the factory.
+
+* `callback` (function) The resolved factory will be passed to the callback as the second argument. It failing the error will be passed as a first argument.
+
+
+##### Example
+```js
+sandal.object('myObject', { some: 'data' });
+sandal.resolveAsFactory(function (myObject) {
+	// Return output or pass to done() if available
+}, function (err, output) {
+	// output will be result of factory
+});
+```
+
+#### sandal.resolveAsService(service, [names], callback)
+
+* `service` (function) The service constructor. The service will not be added to the container but resolved as if it was added and then resolved.
+
+* `names` (Array of strings) If provided, the name/names will be resolved and injected into the service constructor.
+
+* `callback` (function) The resolved service will be passed to the callback as the second argument. It failing the error will be passed as a first argument.
+
+
+##### Example
+```js
+sandal.object('myObject', { some: 'data' });
+sandal.resolveAsService(function (myObject) {
+	// Constructor code
+}, function (err, output) {
+	// output will be the constructed object
+});
+```
+
 
 ### Removing components
 

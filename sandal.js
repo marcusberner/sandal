@@ -2,7 +2,7 @@ var Sandal = (function () {
 
 	'use strict';
 
-    var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve;
+    var Sandal, _getArgumentNames, _register, _hasCircularDependencies, _callResolvedCallbacks, _createObjectSync, _resolve, _resolveAs;
 
 	_register = function (container, name, item, groups) {
 		if (name === 'done' || container[name]) {
@@ -193,6 +193,21 @@ var Sandal = (function () {
 
 	};
 
+	_resolveAs = function(s, type, component, dependencies, callback) {
+		if (!callback) {
+			callback = dependencies;
+			dependencies = null;
+		}
+		var name, prefix = '$_tmp_', suffix = 0;
+		do {
+			name = prefix + (suffix++);
+		} while (s.has(name));
+		if (dependencies) s[type](name, dependencies, component);
+		else s[type](name, component);
+		s.resolve(name, callback);
+		s.remove(name);
+	};
+
 	Sandal = function () {
 		this.clear();
 	};
@@ -288,6 +303,14 @@ var Sandal = (function () {
 		}
 		return this;
 	};
+
+	Sandal.prototype.resolveAsFactory = function (factory, dependencies, callback) {
+		_resolveAs(this, 'factory', factory, dependencies, callback);
+	},
+
+	Sandal.prototype.resolveAsService = function (service, dependencies, callback) {
+		_resolveAs(this, 'service', service, dependencies, callback);
+	},
 
 	Sandal.prototype.remove = function (names) {
 		var i, j, key;
