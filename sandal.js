@@ -78,13 +78,18 @@ var Sandal = (function () {
         }
     };
 
-	_resolve = function (name, container, resolveChain, callback) {
+	_resolve = function (name, sandal, resolveChain, callback) {
 
 		var i, obj, resolvingDone, item, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
 
         resolveChain.push(name);
 
-        item = container[name];
+        item = sandal._container[name];
+
+		if (!item && sandal._internal && sandal._internal.has(name)) {
+			sandal._internal.resolve(name, callback);
+			return;
+		}
 
         if (!item) {
 			callback(new Error('No implementation registered for ' + name + ((resolveChain.length < 2) ? '' : (' needed for ' + resolveChain.splice(resolveChain.length - 2, 1)))));
@@ -185,7 +190,7 @@ var Sandal = (function () {
                     return;
                 }
 
-				_resolve(item.dependencyNames[index], container, resolveChain.slice(0), dependencyCallback);
+				_resolve(item.dependencyNames[index], sandal, resolveChain.slice(0), dependencyCallback);
 
 			})(i);
 
@@ -264,6 +269,11 @@ var Sandal = (function () {
 		return this;
 	};
 
+	Sandal.prototype.internal = function (container) {
+		this._internal = container;
+		return this;
+	};
+
 	Sandal.prototype.resolve = function (arg1, arg2) {
 
 		var that = this, callback, itemNames, itemCount, resolvedCount, resolved, i;
@@ -291,7 +301,7 @@ var Sandal = (function () {
 		resolved = [];
 		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(itemNames[index], that._container, [], function (err, svc) {
+				_resolve(itemNames[index], that, [], function (err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
