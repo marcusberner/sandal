@@ -213,7 +213,8 @@ var Sandal = (function () {
 		s.remove(name);
 	};
 
-	Sandal = function () {
+	Sandal = function (options) {
+		this._options = options || {};
 		this.clear();
 	};
 
@@ -311,16 +312,15 @@ var Sandal = (function () {
 				});
 			})(i);
 		}
-		return this;
 	};
 
 	Sandal.prototype.resolveAsFactory = function (factory, dependencies, callback) {
 		_resolveAs(this, 'factory', factory, dependencies, callback);
-	},
+	};
 
 	Sandal.prototype.resolveAsService = function (service, dependencies, callback) {
 		_resolveAs(this, 'service', service, dependencies, callback);
-	},
+	};
 
 	Sandal.prototype.remove = function (names) {
 		var i, j, key;
@@ -361,16 +361,6 @@ var Sandal = (function () {
 			}
 		};
 		return this;
-	};
-
-	Sandal.prototype.extend = function (extension) {
-		extension(this, false);
-		return this;
-	};
-
-	Sandal.extend = function (extension) {
-		extension(Sandal, true);
-		return Sandal;
 	};
 
 	return Sandal;

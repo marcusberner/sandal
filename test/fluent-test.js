@@ -4,8 +4,6 @@ var test = require("tape"),
 
 test('Fluent', function (t) {
 
-	t.plan(2);
-
 	var sandal = new Sandal();
 	sandal
 		.object('service1', { name: 'service name 1' })
@@ -14,9 +12,7 @@ test('Fluent', function (t) {
 		.service('service2', function(){ this.name = 'service name 2'; })
 		.resolve(function(err, service1) {
 			t.equal(service1.name, 'service name 1.2');
-		})
-		.resolve('service2', function(err, service) {
-			t.equal(service.name, 'service name 2');
+			t.end();
 		});
 
 });

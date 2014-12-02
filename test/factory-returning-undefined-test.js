@@ -4,6 +4,8 @@ var test = require("tape"),
 
 test('Factory returning undefined', function (t) {
 
+	t.plan(4);
+
 	var sandal = new Sandal(),
         count = 0;
 
@@ -13,11 +15,11 @@ test('Factory returning undefined', function (t) {
     }).resolve(function (err, myFactory) {
             t.equal(myFactory, undefined, 'should return undefined');
             t.equal(count, 1, 'should call the factory');
-        }).resolve(function (err, myFactory) {
-            t.equal(myFactory, undefined, 'should return undefined');
-            t.equal(count, 1, 'should not call the factory again');
-            t.end();
         });
+	sandal.resolve(function (err, myFactory) {
+		t.equal(myFactory, undefined, 'should return undefined');
+		t.equal(count, 1, 'should not call the factory again');
+	});
 
 
 });

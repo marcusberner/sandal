@@ -256,10 +256,10 @@ The same extension can be compatible with both extending the constructor and a c
 
 It's recommended to throw an error if the extension is not applicable to the constructor or container base on the `isConstructor` argument, indicating that it was used in a non supported way.
 
-### Chaining
+### Fluent interface
 
 
-All sandal operations can be chained.
+All sandal operations except `resolve`, `resolveAsFactory`, `resolveAsService` and `has` returns the container and can thus be implemented with a fluent interface.
 
 
 ##### Example
