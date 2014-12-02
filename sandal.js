@@ -275,34 +275,28 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.resolve = function (arg1, arg2) {
+	Sandal.prototype.resolve = function (dependencyNames, callback) {
 
-		var that = this, callback, itemNames, itemCount, resolvedCount, resolved, i;
+		var that = this, itemCount, resolvedCount, resolved, i;
 
-		if (typeof arg1 === 'string') {
-            itemNames = [ arg1 ];
-			callback = arg2;
-		} else if (typeof arg1 === 'function') {
-			callback = arg1;
-		} else {
-            itemNames = arg1;
-			callback = arg2;
+		if (typeof dependencyNames === 'string') {
+            dependencyNames = [ dependencyNames ];
+		} else if (typeof dependencyNames === 'function') {
+			callback = dependencyNames;
+			dependencyNames = _getArgumentNames(callback);
+			dependencyNames = dependencyNames.splice(1, dependencyNames.length - 1);
 		}
 
-		if (!(itemNames instanceof Array) && typeof callback !== 'function') return;
+		if (!(dependencyNames instanceof Array) && typeof callback !== 'function') return;
 
-		if (typeof itemNames === 'undefined') {
-            itemNames = _getArgumentNames(callback);
-            itemNames = itemNames.splice(1, itemNames.length - 1);
-		}
-        itemCount = itemNames.length;
+        itemCount = dependencyNames.length;
         if (itemCount === 0) return callback();
 
 		resolvedCount = 0;
 		resolved = [];
 		for (i = 0; i < itemCount; i++) {
 			(function (index) {
-				_resolve(itemNames[index], that, [], function (err, svc) {
+				_resolve(dependencyNames[index], that, [], function (err, svc) {
 					resolvedCount++;
 					resolved[0] = resolved[0] || err;
 					resolved[index + 1] = svc;
