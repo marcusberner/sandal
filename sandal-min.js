@@ -1,2 +1,236 @@
-var Sandal=function(){"use strict";var e,n,t,r,o,i,s,c;return t=function(e,n,t,r){if("done"===n||e[n])throw new Error(n+" is already registered");if(r)for(var o=0;o<r.length;o++)!function(t){if("done"===r[t]||e[r[t]]&&!e[r[t]].isGroup)throw new Error(n+" is already registered and can not be used as group name");e[r[t]]&&e[r[t]].isGroup?e[r[t]].dependencyNames.push(n):e[r[t]]={factory:function(){for(var n={},o=0;o<e[r[t]].dependencyNames.length;o++)n[e[r[t]].dependencyNames[o]]=arguments[o];return n},lifecycle:"transient",dependencyNames:[n],isGroup:!0}}(o);e[n]=t},n=function(e){var n,t;return n=e.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm,""),t=n.slice(n.indexOf("(")+1,n.indexOf(")")).match(/([^\s,]+)/g),null===t&&(t=[]),t},r=function(e,n){var t,r;for(r=0;r<e.length;r++)for(t=0;t<n.length;t++)if(n[t]===e[r])return!0;return!1},o=function(e,n){for(var t=0;t<n.resolvedCallbacks.length;t++)n.resolvedCallbacks[t](e);n.resolvedCallbacks=[],n.isResolving=!1},i=function(e,n){if(e.ctor){var t,r=function(){};return r.prototype=e.ctor.prototype,t=new r,e.ctor.prototype.constructor.apply(t,n),t}return e.factory.apply(null,n)},s=function(e,t,c,a){var l,f,u,d,p,y,h,v;if(c.push(e),d=t._container[e],!d&&t._internal&&t._internal.has(e))return void t._internal.resolve(e,a);if(!d)return void a(new Error("No implementation registered for "+e+(c.length<2?"":" needed for "+c.splice(c.length-2,1))));if(u=function(e,n){"singleton"===d.lifecycle?(e||(d.singleton=n),o(e,d)):a(e,n)},"singleton"===d.lifecycle){if(d.resolvedCallbacks=d.resolvedCallbacks||[],d.resolvedCallbacks.push(function(e){a(e,d.singleton)}),d.isResolving)return;if(d.isResolving=!0,d.hasOwnProperty("singleton"))return void u(null,d.singleton)}if(!d.ctor&&!d.factory)return void u(new Error("No valid implementation registered for "+e));if(d.dependencyNames=d.dependencyNames||n(d.ctor||d.factory),r(d.dependencyNames,c))return void u(new Error("There are circular dependencies in resolve chain: "+c));if(p=d.dependencyNames.length,0!==p)for(y=[],h=!1,v=0,l=0;p>l;l++)!function(e){var n=function(n,t){if(n)return void u(n);if(y[e]=t,v++,v===p){try{f=i(d,y)}catch(n){u(n)}h||u(null,f)}};return"done"===d.dependencyNames[e]?(h=!0,void(d.factory?n(null,u):n(null,function(e){setTimeout(function(){u(e,f)},0)}))):void s(d.dependencyNames[e],t,c.slice(0),n)}(l);else try{f=i(d,[]),u(null,f)}catch(g){u(g)}},c=function(e,n,t,r,o){o||(o=r,r=null);var i,s="$_tmp_",c=0;do i=s+c++;while(e.has(i));r?e[n](i,r,t):e[n](i,t),e.resolve(i,o),e.remove(i)},e=function(e){this._options=e||{},this.clear()},e.prototype.service=function(e,n,r,o,i){if(n instanceof Array||(i=o,o=r,r=n,n=null),o instanceof Array&&(i=o,o=!1),"function"!=typeof r)throw new Error('Service "'+e+'" must be a function');return t(this._container,e,{ctor:r,lifecycle:o?"transient":"singleton",dependencyNames:n},i),this},e.prototype.factory=function(e,n,r,o,i){if(n instanceof Array||(i=o,o=r,r=n,n=null),o instanceof Array&&(i=o,o=!1),"function"!=typeof r)throw new Error('Factory "'+e+'" must be a function');return t(this._container,e,{factory:r,lifecycle:o?"transient":"singleton",dependencyNames:n},i),this},e.prototype.object=function(e,n,r){return t(this._container,e,{singleton:n,lifecycle:"singleton"},r),this},e.prototype.internal=function(e){return this._internal=e,this},e.prototype.resolve=function(e,t){var r,o,i,c,a=this;if("string"==typeof e?e=[e]:"function"==typeof e&&(t=e,e=n(t),e=e.splice(1,e.length-1)),e instanceof Array||"function"==typeof t){if(r=e.length,0===r)return t();for(o=0,i=[],c=0;r>c;c++)!function(n){s(e[n],a,[],function(e,s){o++,i[0]=i[0]||e,i[n+1]=s,o===r&&t&&t.apply({},i)})}(c)}},e.prototype.resolveAsFactory=function(e,n,t){c(this,"factory",e,n,t)},e.prototype.resolveAsService=function(e,n,t){c(this,"service",e,n,t)},e.prototype.remove=function(e){var n,t,r;if(!e)return this;for("string"==typeof e&&(e=[e]),n=0;n<e.length;n++){if("sandal"===e[n]||"done"===e[n])throw new Error("Removing "+e[n]+" is not allowed");delete this._container[e[n]];for(r in this._container)if(this._container[r].isGroup)for(t in this._container[r].dependencyNames)if(this._container[r].dependencyNames[t]===e[n]){this._container[r].dependencyNames.splice(t,1);break}}return this},e.prototype.has=function(e){return!!this._container[e]},e.prototype.clear=function(){return this._container={sandal:{singleton:this,lifecycle:"singleton"}},this},e}();"undefined"!=typeof module&&module.exports&&(module.exports=Sandal);
+var Sandal=function(){/*
+	_register = function (container, name, item, groups) {
+		if (name === 'done' || container[name]) {
+			throw new Error(name + ' is already registered');
+		}
+		if (groups) {
+			for (var i = 0; i < groups.length; i++) {
+				(function (i) {
+					if (groups[i] === 'done' || (container[groups[i]] && !container[groups[i]].isGroup)) {
+						throw new Error(name + ' is already registered and can not be used as group name');
+					}
+					if (container[groups[i]] && container[groups[i]].isGroup) {
+						container[groups[i]].dependencyNames.push(name);
+					} else {
+						container[groups[i]] = {
+							factory: function () {
+								var result = {};
+								for (var j = 0; j < container[groups[i]].dependencyNames.length; j++) {
+									result[container[groups[i]].dependencyNames[j]] = arguments[j];
+								}
+								return result;
+							},
+							lifecycle: 'transient',
+							dependencyNames: [name],
+							isGroup: true
+						}
+					}
+				})(i);
+			}
+		}
+		container[name] = item;
+	};
+
+	_hasCircularDependencies = function (dependencyNames, resolveChain) {
+		var i, j;
+		for (j = 0; j < dependencyNames.length; j++) {
+			for (i = 0; i < resolveChain.length; i++) {
+				if (resolveChain[i] === dependencyNames[j]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	_callResolvedCallbacks = function (err, item) {
+		for (var i = 0; i < item.resolvedCallbacks.length; i++) {
+            item.resolvedCallbacks[i](err);
+		}
+        item.resolvedCallbacks = [];
+        item.isResolving = false;
+	};
+
+    _createObjectSync = function (item, dependencies) {
+        if (item.ctor) {
+			var obj, O = function () {};
+			O.prototype = item.ctor.prototype;
+			obj = new O();
+            item.ctor.prototype.constructor.apply(obj, dependencies);
+            return obj;
+        } else {
+            return item.factory.apply(null, dependencies);
+        }
+    };
+
+	_resolve = function (name, sandal, resolveChain, callback) {
+
+		var i, obj, resolvingDone, item, dependencyCount, dependencies, hasDoneCallback, resolvedDependenciesCount;
+
+        resolveChain.push(name);
+
+        item = sandal._container[name];
+
+		if (!item && sandal._internal && sandal._internal.has(name)) {
+			sandal._internal.resolve(name, callback);
+			return;
+		}
+
+        if (!item) {
+			callback(new Error('No implementation registered for ' + name + ((resolveChain.length < 2) ? '' : (' needed for ' + resolveChain.splice(resolveChain.length - 2, 1)))));
+            return;
+        }
+
+		resolvingDone = function (err, obj) {
+			if (item.lifecycle === 'singleton') {
+				if (!err) item.singleton = obj;
+				_callResolvedCallbacks(err, item);
+			} else {
+				callback(err, obj);
+			}
+        };
+
+        if (item.lifecycle === 'singleton') {
+
+            item.resolvedCallbacks = item.resolvedCallbacks || [];
+            item.resolvedCallbacks.push(function (err) {
+                callback(err, item.singleton);
+            });
+
+            if (item.isResolving) {
+                return;
+            }
+            item.isResolving = true;
+
+            if (item.hasOwnProperty('singleton')) {
+				resolvingDone(null, item.singleton);
+                return;
+            }
+
+        }
+
+		if (!item.ctor && !item.factory) {
+			resolvingDone(new Error('No valid implementation registered for ' + name));
+			return;
+		}
+
+		item.dependencyNames = item.dependencyNames || _getArgumentNames(item.ctor || item.factory);
+		if (_hasCircularDependencies(item.dependencyNames, resolveChain)) {
+			resolvingDone(new Error('There are circular dependencies in resolve chain: ' + resolveChain));
+            return;
+		}
+
+		dependencyCount = item.dependencyNames.length;
+		if (dependencyCount === 0) {
+            try {
+                obj = _createObjectSync(item, []);
+				resolvingDone(null, obj);
+            } catch (err) {
+				resolvingDone(err);
+            }
+			return;
+		}
+
+		dependencies = [];
+		hasDoneCallback = false;
+		resolvedDependenciesCount = 0;
+		for (i = 0; i < dependencyCount; i++) {
+
+			(function (index) {
+
+				var dependencyCallback = function (err, dependency) {
+
+                    if (err) {
+						resolvingDone(err);
+						return;
+					}
+					dependencies[index] = dependency;
+					resolvedDependenciesCount++;
+
+					if (resolvedDependenciesCount === dependencyCount) {
+
+                        try {
+                            obj = _createObjectSync(item, dependencies);
+                        } catch (err) {
+							resolvingDone(err);
+                        }
+
+						if (!hasDoneCallback) {
+							resolvingDone(null, obj);
+						}
+					}
+				};
+
+                if (item.dependencyNames[index] === 'done') {
+                    hasDoneCallback = true;
+					if (item.factory) {
+						dependencyCallback(null, resolvingDone);
+					} else {
+						dependencyCallback(null, function (err) {
+							setTimeout(function () {
+								resolvingDone(err, obj);
+							}, 0);
+						});
+					}
+                    return;
+                }
+
+				_resolve(item.dependencyNames[index], sandal, resolveChain.slice(0), dependencyCallback);
+
+			})(i);
+
+		}
+
+	};
+
+	_resolveAs = function(s, type, component, dependencies, callback) {
+		if (!callback) {
+			callback = dependencies;
+			dependencies = null;
+		}
+		var name, prefix = '$_tmp_', suffix = 0;
+		do {
+			name = prefix + (suffix++);
+		} while (s.has(name));
+		if (dependencies) s[type](name, dependencies, component);
+		else s[type](name, component);
+		s.resolve(name, callback);
+		s.remove(name);
+	};
+*/
+/*
+	Sandal.prototype.resolve = function (dependencyNames, callback) {
+
+		var that = this, itemCount, resolvedCount, resolved, i;
+
+		if (typeof dependencyNames === 'string') {
+            dependencyNames = [ dependencyNames ];
+		} else if (typeof dependencyNames === 'function') {
+			callback = dependencyNames;
+			dependencyNames = _getArgumentNames(callback);
+			dependencyNames = dependencyNames.splice(1, dependencyNames.length - 1);
+		}
+
+		if (!(dependencyNames instanceof Array) && typeof callback !== 'function') return;
+
+        itemCount = dependencyNames.length;
+        if (itemCount === 0) return callback();
+
+		resolvedCount = 0;
+		resolved = [];
+		for (i = 0; i < itemCount; i++) {
+			(function (index) {
+				_resolve(dependencyNames[index], that, [], function (err, svc) {
+					resolvedCount++;
+					resolved[0] = resolved[0] || err;
+					resolved[index + 1] = svc;
+					if (resolvedCount === itemCount) {
+						if (callback) callback.apply({}, resolved);
+					}
+				});
+			})(i);
+		}
+	};
+	*/
+"use strict";var t=function(t){var n,e;return n=t.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm,""),e=n.slice(n.indexOf("(")+1,n.indexOf(")")).match(/([^\s,]+)/g),null===e&&(e=[]),e},n=function(n,e,i,o){var o=o||{},r=this,c=function(t){var e,o,c=!1,s=this.dependencies.length,u=0,a=[],p=function(){if(!(s>u))try{var e;"factory"===n?o=i.apply(void 0,a):(e=function(){},e.prototype=i.prototype,o=new e,i.prototype.constructor.apply(o,a)),c||t(null,o)}catch(r){t(r)}};for(p(),e=0;e<this.dependencies.length;e++)!function(e,i){return"done"===i?(c=!0,u++,a[e]=function(e,i){setTimeout(function(){t(e,"factory"===n?i:o)},0)},void p()):void r.resolve(i,function(n,i){return n?t(n):(u++,a[e]=i,void p())})}(e,this.dependencies[e])};return c.dependencies=o.dependencies||t(i),this._container[e]=c.bind(c),this},e=function(t){this._options=t||{},this.clear()};return e.prototype.has=function(t){return!!this._container[t]},e.prototype.resolve=function(n,e){e||(e=n,n=t(e).slice(1)),"string"==typeof n&&(n=[n]);var i,o=n.length,r=0,c=[];for(i=0;o>i;i++)(function(t,n){r++,c[t]=this._container[n]}).bind(this)(i,n[i]);this._container[n]?this._container[n](e):this._internal?this._internal.resolve(n,e):e(new Error('No implementation registered for "'+n+'"'))},e.prototype.internal=function(t){return this._internal=t,this},e.prototype.object=function(t,n){return this._container[t]=function(t){t(null,n)},this},e.prototype.factory=function(t,e,i){return n.bind(this)("factory",t,e,i)},e.prototype.service=function(t,e,i){return n.bind(this)("service",t,e,i)},e.prototype.clear=function(){return this._container={sandal:function(t){t(null,this)}.bind(this)},this},e}();module&&module.exports&&(module.exports=Sandal);
 //# sourceMappingURL=sandal-min.map
