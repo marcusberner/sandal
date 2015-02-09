@@ -17,7 +17,7 @@ var Sandal = (function () {
 
 	'use strict';
 
-	var _getArgumentNames, _toArray, _register, Sandal;
+	var _getArgumentNames, _cloneArray, _register, _addToGroup, Sandal;
 
 	_getArgumentNames = function (func) {
 		var functionString, argumentList;
@@ -29,7 +29,7 @@ var Sandal = (function () {
 		return argumentList;
 	};
 
-	_toArray = function (args) {
+	_cloneArray = function (args) {
 		var result = [];
 		for (var i = 0; i < args.length; i++) {
 			result[i] = args[i];
@@ -38,6 +38,8 @@ var Sandal = (function () {
 	};
 
 	_register = function (sandal, name, component, options, resolveComponent) {
+		if (sandal._container[name]) throw new Error('There is already a component with the name ' + name);
+		if (typeof component !== 'function') throw new Error('Factory or service ' + name + ' is not a function');
 		var dependencyNames, doneIndex, checkDependencies;
 		options = options || {};
 		dependencyNames = options.dependencies || _getArgumentNames(component);
@@ -80,9 +82,9 @@ var Sandal = (function () {
 				};
 			}
 			sandal._info('Resolving ' + name + ' dependencies: ' + dependencyNames);
-			sandal.resolve(dependencyNames, function (err) {
-				var dependencies = _toArray(arguments).slice(1);
+			sandal.resolve(sandal._container[name]._dependencies, function (err) {
 				if (err) return callback(err);
+				var dependencies = _cloneArray(arguments).slice(1);
 				try {
 					resolveComponent(component, dependencies, doneIndex, resolvedCallback);
 				} catch (err) {
@@ -91,6 +93,35 @@ var Sandal = (function () {
 			});
 		};
 		sandal._container[name]._dependencies = dependencyNames;
+		if (options.groups) {
+			for (var i = 0; i < options.groups.length; i++) {
+				_addToGroup(sandal, name, options.groups[i]);
+			}
+		}
+	};
+
+	_addToGroup = function (sandal, name, groupName) {
+		if (!sandal._container[groupName]) {
+			sandal._container[groupName] = function (callback) {
+				var dependencyNames = _cloneArray(sandal._container[groupName]._dependencies);
+				sandal.resolve(dependencyNames, function (err) {
+					if (err) return callback(err);
+					var i,
+						dependencies = _cloneArray(arguments).slice(1),
+						group = {};
+					for(i = 0; i < dependencyNames.length; i++) {
+						group[dependencyNames[i]] = dependencies[i];
+					}
+					callback(null, group);
+				});
+			};
+			sandal._container[groupName]._dependencies = [ name ];
+			sandal._container[groupName]._isGroup = true;
+		} else if (sandal._container[groupName]._isGroup) {
+			sandal._container[groupName]._dependencies.push(name);
+		} else {
+			throw new Error('There is already a non group component with the name ' + groupName);
+		}
 	};
 
 	Sandal = function (options) {
@@ -152,14 +183,15 @@ var Sandal = (function () {
 
 				sandal._info('Resolving ' + name);
 
-				if (!sandal._container[name]) {
-					var message = 'No component named ' + name + ' registered';
-					sandal._error(message);
-					failed = true;
-					return callback(new Error(message));
-				}
+				var resolveSingle = sandal._container[name] ? sandal._container[name] : function (singeCallback) {
+					if (!sandal._internal) {
+						failed = true;
+						return singeCallback(new Error('No component named ' + name + ' registered'));
+					}
+					sandal._internal.resolve(name, singeCallback);
+				};
 
-				sandal._container[name](function (err, instance) {
+				resolveSingle(function (err, instance) {
 					if (err) {
 						failed = true;
 						sandal._error('Failed resolving ' + name + ': ' + err.message);
@@ -183,10 +215,17 @@ var Sandal = (function () {
 		return this;
 	};
 
-	Sandal.prototype.object = function (name, obj) {
-		this._info('Register object ' + name);
-		this._container[name] = function (callback) { callback(null, obj); };
-		this._container[name]._dependencies = [];
+	Sandal.prototype.object = function (name, obj, options) {
+		var sandal = this;
+		if (sandal._container[name]) throw new Error('There is already a component with the name ' + name);
+		sandal._info('Register object ' + name);
+		sandal._container[name] = function (callback) { callback(null, obj); };
+		sandal._container[name]._dependencies = [];
+		if (options && options.groups) {
+			for (var i = 0; i < options.groups.length; i++) {
+				_addToGroup(sandal, name, options.groups[i]);
+			}
+		}
 		return this;
 	};
 
@@ -225,6 +264,64 @@ var Sandal = (function () {
 				callback(null, result);
 			}
 		});
+		return this;
+	};
+
+	Sandal.prototype.resolveAsFactory = function (factory, options, callback) {
+		if (!callback) {
+			if (typeof options === 'function') {
+				callback = options;
+				options = {};
+			}
+			// Promises for no callback
+		}
+		options = options || {};
+		var dependencies = options.dependencies || _getArgumentNames(factory);
+		this.resolve(dependencies, function (err) {
+			if (err) return callback(err);
+			callback(null, factory.apply(undefined, _cloneArray(arguments).slice(1)));
+		});
+	};
+
+	Sandal.prototype.resolveAsService = function (service, options, callback) {
+		if (!callback) {
+			if (typeof options === 'function') {
+				callback = options;
+				options = {};
+			}
+			// Promises for no callback
+		}
+		options = options || {};
+		var dependencies = options.dependencies || _getArgumentNames(service);
+		this.resolve(dependencies, function (err) {
+			if (err) return callback(err);
+			var O, result;
+			O = function () {};
+			O.prototype = service.prototype;
+			result = new O();
+			service.prototype.constructor.apply(result, _cloneArray(arguments).slice(1));
+			callback(null, result);
+		});
+	};
+
+	Sandal.prototype.remove = function (name) {
+		if (name instanceof Array) {
+			for (var i = 0; i < name.length; i++) {
+				this.remove(name[i]);
+			}
+			return;
+		}
+		if (name === 'done') throw new Error('Removing done is not allowed');
+		if (name === 'sandal') throw new Error('Removing sandal is not allowed');
+		delete this._container[name];
+		for (var groupName in this._container) {
+			if (this._container[groupName]._isGroup) {
+				var index = this._container[groupName]._dependencies.indexOf(name);
+				if (index >= 0) {
+					this._container[groupName]._dependencies.splice(index, 1);
+				}
+			}
+		}
 		return this;
 	};
 

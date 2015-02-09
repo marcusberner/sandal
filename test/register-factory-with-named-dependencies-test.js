@@ -23,9 +23,9 @@ test('Register with named dependencies', function (t) {
 		t.ok(true, 'should call the factory');
 		return 'factory4';
 	};
-	sandal.factory('factory1', [ 'factory2', 'factory3' ], f1);
+	sandal.factory('factory1', f1, { dependencies: [ 'factory2', 'factory3' ] });
 	sandal.factory('factory2', f2);
-	sandal.factory('factory3', [ 'factory4' ], f3);
+	sandal.factory('factory3', f3, { dependencies: [ 'factory4' ] });
 	sandal.factory('factory4', f4);
 
 	sandal.resolve(function(err, factory1) {

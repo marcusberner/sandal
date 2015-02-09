@@ -18,7 +18,7 @@ test('Resolve transient factory with singleton dependencies twice', function (t)
         return j.toString();
     };
 
-	sandal.factory('factory1', factory1, true);
+	sandal.factory('factory1', factory1, { lifecycle: 'transient' });
     sandal.factory('factory2', factory2);
 
     t.plan(2);

@@ -35,9 +35,9 @@ test('Register with named dependencies', function (t) {
 	s4.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.service('service1', [ 'service2', 'service3' ], s1);
+	sandal.service('service1', s1, { dependencies: [ 'service2', 'service3' ] });
 	sandal.service('service2', s2);
-	sandal.service('service3', [ 'service4' ], s3);
+	sandal.service('service3', s3, { dependencies: [ 'service4' ] });
 	sandal.service('service4', s4);
 
 	sandal.resolve(function(err, service1) {

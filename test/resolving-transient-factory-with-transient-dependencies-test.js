@@ -18,8 +18,8 @@ test('Resolve transient factory with transient dependencies twice', function (t)
         return j.toString();
     };
 
-	sandal.factory('factory1', factory1, true);
-    sandal.factory('factory2', factory2, true);
+	sandal.factory('factory1', factory1, { lifecycle: 'transient' });
+    sandal.factory('factory2', factory2, { lifecycle: 'transient' });
 
     t.plan(2);
 

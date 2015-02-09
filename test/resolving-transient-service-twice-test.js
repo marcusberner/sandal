@@ -15,7 +15,7 @@ test('Resolve service twice', function (t) {
 	service.prototype.getName = function() {
 		return this.name;
 	};
-	sandal.service('service', service, 'transient');
+	sandal.service('service', service, { lifecycle: 'transient' });
 
 	sandal.resolve(function(err, service) {
 		t.equal(service.getName(), 1, 'Should get an instance');

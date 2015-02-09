@@ -30,9 +30,9 @@ test('Resolve transient factory with async transient dependencies twice', functi
 		}, 10);
     };
 
-	sandal.factory('factory1', factory1, true);
-    sandal.factory('factory2', factory2, true);
-    sandal.factory('factory3', factory3, true);
+	sandal.factory('factory1', factory1, { lifecycle: 'transient' });
+    sandal.factory('factory2', factory2, { lifecycle: 'transient' });
+    sandal.factory('factory3', factory3, { lifecycle: 'transient' });
 
     t.plan(2);
 

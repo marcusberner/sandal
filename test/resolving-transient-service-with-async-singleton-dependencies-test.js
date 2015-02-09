@@ -36,7 +36,7 @@ test('Resolve transient service with async singleton dependencies twice', functi
         }, 10);
     };
 
-	sandal.service('service1', service1, true);
+	sandal.service('service1', service1, { lifecycle: 'transient' });
     sandal.service('service2', service2);
     sandal.service('service3', service3);
 

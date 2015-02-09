@@ -5,8 +5,8 @@ var test = require("tape"),
 test('Remove one from group', function (t) {
 
 	var container = new Sandal();
-	container.object('obj1', 'first object', ['myGroup']);
-	container.object('obj2', 'second object', ['myGroup']);
+	container.object('obj1', 'first object', { groups: ['myGroup'] });
+	container.object('obj2', 'second object', { groups: ['myGroup'] });
 	container.remove('obj2');
 
 	container.resolve(function(error, myGroup) {

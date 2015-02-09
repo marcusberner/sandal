@@ -8,24 +8,42 @@ test('Adding tag to service, factory and object', function (t) {
 
 	sandal.factory('factory1', function (done) {
 		done(null, 'f1');
-	}, [ 'tag1', 'tag2' ]);
+	}, {
+		groups: [ 'tag1', 'tag2' ]
+	});
 	sandal.factory('factory2', function () {
 		return 'f2';
-	}, true, [ 'tag1' ]);
-	sandal.factory('factory3', [ 'object1' ], function (o) {
+	}, {
+		lifecycle: 'transient',
+		groups: [ 'tag1' ]
+	});
+	sandal.factory('factory3', function (o) {
 		return 'f3' + o;
-	}, true, [ 'tag1' ]);
+	}, {
+		dependencies: [ 'object1' ],
+		lifecycle: 'transient',
+		groups: [ 'tag1' ]
+	});
 	sandal.service('service1', function () {
 		this.value = 's1';
-	}, [ 'tag1', 'tag2' ]);
+	}, {
+		groups: [ 'tag1', 'tag2' ]
+	});
 	sandal.service('service2', function () {
 		this.value = 's2';
-	}, true, [ 'tag1' ]);
-	sandal.service('service3', [ 'object1' ], function (o) {
+	}, {
+		lifecycle: 'transient',
+		groups: [ 'tag1' ]
+	});
+	sandal.service('service3', function (o) {
 		this.value = 's3' + o;
-	}, true, [ 'tag1' ]);
-	sandal.object('object1', 'o1', [ 'tag1', 'tag2' ]);
-	sandal.object('object2', 'o2', [ 'tag1' ]);
+	}, {
+		dependencies: [ 'object1' ],
+		lifecycle: 'transient',
+		groups: [ 'tag1' ]
+	});
+	sandal.object('object1', 'o1', { groups: [ 'tag1', 'tag2' ] });
+	sandal.object('object2', 'o2', { groups: [ 'tag1' ] });
 
 	sandal.resolve(function(err, tag1, tag2) {
 		var expected1 = {

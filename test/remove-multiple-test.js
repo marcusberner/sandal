@@ -2,7 +2,7 @@
 var test = require("tape"),
 	Sandal = require('../sandal.js');
 
-test('Clear multiple implementations', function (t) {
+test('Removing multiple implementations', function (t) {
 
 	t.plan(4);
 

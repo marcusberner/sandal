@@ -18,7 +18,7 @@ test('Resolve transient service with singleton dependencies twice', function (t)
         this.value =  j.toString();
     };
 
-	sandal.service('service1', service1, true);
+	sandal.service('service1', service1, { lifecycle: 'transient' });
     sandal.service('service2', service2);
 
     t.plan(2);

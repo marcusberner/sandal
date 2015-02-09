@@ -39,14 +39,16 @@ test('Resolve as service with named parameters', function (t) {
 
 	sandal.object('prefix', 'p_');
 	sandal.object('prefix2', 'p2_');
-	sandal.factory('countFactory', countFactory, true);
+	sandal.factory('countFactory', countFactory, {
+		lifecycle: 'transient'
+	});
 
-	sandal.resolveAsService(service1, [ 'prefix', 'countFactory' ], function(err, service1) {
+	sandal.resolveAsService(service1, { dependencies: [ 'prefix', 'countFactory' ] }, function(err, service1) {
 		t.notOk(err, 'should not fail');
 		t.equal(service1.data, 'p_0', 'should resolve service with dependencies');
 	});
 
-	sandal.resolveAsService(service1, [ 'prefix2', 'countFactory' ], function(err, service1) {
+	sandal.resolveAsService(service1, { dependencies: [ 'prefix2', 'countFactory' ] }, function(err, service1) {
 		t.notOk(err, 'should not fail');
 		t.equal(service1.data, 'p2_1', 'should resolve service with dependencies');
 	});

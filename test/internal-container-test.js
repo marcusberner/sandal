@@ -16,11 +16,15 @@ test('Share internal container', function (t) {
 
 	container1.factory('randomString', function(randomNumber) {
 		return randomNumber.toString();
-	}, true);
+	}, {
+		lifecycle: 'transient'
+	});
 
 	container2.factory('randomString', function(randomNumber) {
 		return randomNumber.toString();
-	}, true);
+	}, {
+		lifecycle: 'transient'
+	});
 
 	container1.resolve(['randomString', 'randomNumber'], function(error, randomString1, randomNumber1) {
 		t.notOk(error, 'should not fail');

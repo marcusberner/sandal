@@ -30,7 +30,7 @@ test('Resolve transient factory with async singleton dependencies twice', functi
 		}, 10);
     };
 
-	sandal.factory('factory1', factory1, true);
+	sandal.factory('factory1', factory1, { lifecycle: 'transient' });
     sandal.factory('factory2', factory2);
     sandal.factory('factory3', factory3);
 
