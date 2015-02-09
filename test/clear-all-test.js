@@ -6,16 +6,16 @@ test('Clear all implementations', function (t) {
 
 	t.plan(3);
 
-	var container = new Sandal();
-	container.object('service', {});
-	container.clear();
+	var s = new Sandal();
+	s.object('myObject', {});
+	s.clear();
 
-	container.resolve(function(error, service) {
-		t.ok(error, 'should get an error for cleared service');
+	s.resolve(function(error, myObject) {
+		t.ok(error, 'should get an error when resolving removed component');
 	});
-	container.resolve(function(error, sandal) {
-		t.ok(!error, 'should not get an error for sandal');
-		t.equal(sandal, container, 'should get the correct container');
+	s.resolve(function(error, sandal) {
+		t.notOk(error, 'should not get an error for sandal');
+		t.equal(sandal, s, 'should get the correct container');
 	});
 
 });

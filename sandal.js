@@ -2,13 +2,14 @@ var Sandal = (function () {
 
 	// TO implement
 	//
-	// Groups: Adding group without members to container?
+	// Groups: Adding group with components not in container?
 	// ResolveAs: "resolve as" should not return strange name when failing
 	// circular dependencies at register time
 	// Check for existing when register
 	// Not allow remove sandal or done
 	// Promise support
 	// Make single component verbose
+	// Define dependencies in options
 
 	// TO document and test
 	//
@@ -37,9 +38,16 @@ var Sandal = (function () {
 	};
 
 	_register = function (sandal, name, component, options, resolveComponent) {
-		var dependencyNames, doneIndex;
+		var dependencyNames, doneIndex, checkDependencies;
 		options = options || {};
-		dependencyNames = _getArgumentNames(component);
+		dependencyNames = options.dependencies || _getArgumentNames(component);
+		(checkDependencies = function (dependencies) {
+			if (!dependencies) return;
+			for (var i = 0; i < dependencies.length; i++) {
+				if (dependencies[i] === name) throw new Error(name + ' has circular dependency');
+				if (sandal._container[dependencies[i]]) checkDependencies(sandal._container[dependencies[i]]._dependencies)
+			}
+		})(dependencyNames);
 		doneIndex = dependencyNames.indexOf('done');
 		sandal._container[name] = function (callback) {
 			var resolvedCallback = callback;
@@ -82,6 +90,7 @@ var Sandal = (function () {
 				}
 			});
 		};
+		sandal._container[name]._dependencies = dependencyNames;
 	};
 
 	Sandal = function (options) {
@@ -136,9 +145,20 @@ var Sandal = (function () {
 		for (i = 0; i < totalCount; i++) {
 			(function (index, name) {
 
+				if (failed) return;
+
 				// Check container and internal container for component
+				// Return promise if configured and no callback
 
 				sandal._info('Resolving ' + name);
+
+				if (!sandal._container[name]) {
+					var message = 'No component named ' + name + ' registered';
+					sandal._error(message);
+					failed = true;
+					return callback(new Error(message));
+				}
+
 				sandal._container[name](function (err, instance) {
 					if (err) {
 						failed = true;
@@ -166,6 +186,7 @@ var Sandal = (function () {
 	Sandal.prototype.object = function (name, obj) {
 		this._info('Register object ' + name);
 		this._container[name] = function (callback) { callback(null, obj); };
+		this._container[name]._dependencies = [];
 		return this;
 	};
 
